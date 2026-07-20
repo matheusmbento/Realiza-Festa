@@ -26,7 +26,9 @@ export default function NovoEvento() {
     local_endereco: '',
     tema: '',
     tipo_entrega: 'leva_monta',
-    valor_total: '',
+    valor_decoracao: '',
+    valor_brinquedos: '',
+    valor_frete: '',
     valor_sinal: '',
     forma_pagamento: 'pix',
     observacoes: '',
@@ -52,9 +54,17 @@ export default function NovoEvento() {
     if (!form.data_evento) { toast.error('Informe a data do evento'); return }
     setLoading(true)
     try {
+      const val_dec = parseFloat(form.valor_decoracao.replace(',', '.')) || 0
+      const val_bri = parseFloat(form.valor_brinquedos.replace(',', '.')) || 0
+      const val_fre = parseFloat(form.valor_frete.replace(',', '.')) || 0
+      const val_tot = val_dec + val_bri + val_fre
+
       const payload = {
         ...form,
-        valor_total: parseFloat(form.valor_total.replace(',', '.')) || 0,
+        valor_decoracao: val_dec,
+        valor_brinquedos: val_bri,
+        valor_frete: val_fre,
+        valor_total: val_tot,
         valor_sinal: parseFloat(form.valor_sinal.replace(',', '.')) || 0,
         cores,
         status: 'orcamento',
@@ -184,9 +194,15 @@ export default function NovoEvento() {
         <Card>
           <h2 className="text-sm font-semibold mb-4" style={{ color: '#4ADE80' }}>Financeiro</h2>
           <div className="space-y-3">
-            <div className="grid grid-cols-2 gap-3">
-              <Input label="Valor total (R$)" value={form.valor_total}
-                onChange={e => campo('valor_total', e.target.value)}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+              <Input label="Decoração (R$)" value={form.valor_decoracao}
+                onChange={e => campo('valor_decoracao', e.target.value)}
+                placeholder="0,00" inputMode="decimal" />
+              <Input label="Brinquedos (R$)" value={form.valor_brinquedos}
+                onChange={e => campo('valor_brinquedos', e.target.value)}
+                placeholder="0,00" inputMode="decimal" />
+              <Input label="Frete (R$)" value={form.valor_frete}
+                onChange={e => campo('valor_frete', e.target.value)}
                 placeholder="0,00" inputMode="decimal" />
               <Input label="Valor do sinal (R$)" value={form.valor_sinal}
                 onChange={e => campo('valor_sinal', e.target.value)}

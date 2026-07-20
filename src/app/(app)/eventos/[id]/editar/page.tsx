@@ -21,6 +21,7 @@ export default function EditarEvento() {
     data_evento: '', hora_inicio: '', hora_montagem: '',
     local_nome: '', local_endereco: '', tema: '',
     tipo_entrega: 'leva_monta', valor_total: '', valor_sinal: '',
+    valor_decoracao: '', valor_brinquedos: '', valor_frete: '',
     forma_pagamento: 'pix', observacoes: '',
   })
 
@@ -37,6 +38,9 @@ export default function EditarEvento() {
       local_endereco: e.local_endereco ?? '', tema: e.tema ?? '',
       tipo_entrega: e.tipo_entrega ?? 'leva_monta',
       valor_total: String(e.valor_total ?? ''), valor_sinal: String(e.valor_sinal ?? ''),
+      valor_decoracao: String(e.valor_decoracao ?? ''),
+      valor_brinquedos: String(e.valor_brinquedos ?? ''),
+      valor_frete: String(e.valor_frete ?? ''),
       forma_pagamento: e.forma_pagamento ?? 'pix', observacoes: e.observacoes ?? '',
     })
     setCores(e.cores ?? [])
@@ -51,11 +55,19 @@ export default function EditarEvento() {
     e.preventDefault()
     setSalvando(true)
     try {
+      const val_dec = parseFloat(form.valor_decoracao.replace(',', '.')) || 0
+      const val_bri = parseFloat(form.valor_brinquedos.replace(',', '.')) || 0
+      const val_fre = parseFloat(form.valor_frete.replace(',', '.')) || 0
+      const val_tot = val_dec + val_bri + val_fre
+
       const res = await fetch(`/api/eventos/${id}`, {
         method: 'PATCH', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           ...form, cores,
-          valor_total: parseFloat(form.valor_total.replace(',', '.')) || 0,
+          valor_decoracao: val_dec,
+          valor_brinquedos: val_bri,
+          valor_frete: val_fre,
+          valor_total: val_tot,
           valor_sinal: parseFloat(form.valor_sinal.replace(',', '.')) || 0,
           cliente_id: form.cliente_id || null,
         }),
@@ -130,8 +142,10 @@ export default function EditarEvento() {
         </div>
         <div className="rounded-2xl p-4 space-y-3" style={{ background: '#1A1A24', border: '1px solid #2A2A38' }}>
           <h2 className="text-sm font-semibold" style={{ color: '#4ADE80' }}>Financeiro</h2>
-          <div className="grid grid-cols-2 gap-3">
-            <Input label="Valor total" value={form.valor_total} onChange={e => campo('valor_total', e.target.value)} inputMode="decimal" />
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            <Input label="Decoração" value={form.valor_decoracao} onChange={e => campo('valor_decoracao', e.target.value)} inputMode="decimal" />
+            <Input label="Brinquedos" value={form.valor_brinquedos} onChange={e => campo('valor_brinquedos', e.target.value)} inputMode="decimal" />
+            <Input label="Frete" value={form.valor_frete} onChange={e => campo('valor_frete', e.target.value)} inputMode="decimal" />
             <Input label="Valor sinal" value={form.valor_sinal} onChange={e => campo('valor_sinal', e.target.value)} inputMode="decimal" />
           </div>
           <Select label="Pagamento" value={form.forma_pagamento} onChange={e => campo('forma_pagamento', e.target.value)}>

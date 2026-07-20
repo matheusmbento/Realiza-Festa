@@ -15,11 +15,31 @@ export async function GET(req: NextRequest) {
   // Lançamentos do mês
   const { data: lancamentos } = await supabase
     .from('lancamentos')
-    .select('tipo, valor, categoria, data')
+    .select('tipo, valor, categoria, data, evento:eventos(valor_total, valor_decoracao, valor_brinquedos, valor_frete)')
     .gte('data', inicio)
     .lte('data', fim)
 
-  const receita = lancamentos?.filter(l => l.tipo === 'entrada').reduce((s, l) => s + Number(l.valor), 0) ?? 0
+  let receita_decoracao = 0
+  let receita_brinquedos = 0
+  let receita_frete = 0
+  let receita_outros = 0
+
+  const receita = lancamentos?.filter(l => l.tipo === 'entrada').reduce((s, l) => {
+    const val = Number(l.valor)
+    const ev = l.evento as any // Tipagem flexível para a resposta do join
+    if (ev && ev.valor_total > 0) {
+      const pDec = (ev.valor_decoracao || 0) / ev.valor_total
+      const pBri = (ev.valor_brinquedos || 0) / ev.valor_total
+      const pFre = (ev.valor_frete || 0) / ev.valor_total
+      receita_decoracao += val * pDec
+      receita_brinquedos += val * pBri
+      receita_frete += val * pFre
+    } else {
+      receita_outros += val
+    }
+    return s + val
+  }, 0) ?? 0
+
   const custos  = lancamentos?.filter(l => l.tipo === 'saida').reduce((s, l) => s + Number(l.valor), 0) ?? 0
 
   // A receber total (não apenas do mês)
@@ -72,6 +92,12 @@ export async function GET(req: NextRequest) {
     a_receber: totalAReceber,
     eventos_mes: qtdEventos,
     ticket_medio: ticketMedio,
+    receita_breakdown: {
+      decoracao: receita_decoracao,
+      brinquedos: receita_brinquedos,
+      frete: receita_frete,
+      outros: receita_outros
+    },
     historico,
     periodo: { inicio, fim },
   })

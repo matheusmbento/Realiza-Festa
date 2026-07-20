@@ -11,6 +11,7 @@ import ModalLancamento from '@/components/financeiro/ModalLancamento'
 interface Dashboard {
   receita: number; custos: number; lucro: number; a_receber: number
   eventos_mes: number; ticket_medio: number
+  receita_breakdown?: { decoracao: number; brinquedos: number; frete: number; outros: number }
   historico: { mes: string; receita: number; custos: number }[]
 }
 
@@ -74,6 +75,42 @@ export default function FinanceiroPage() {
           <StatCard icone="🎉" label="Eventos no mês" valor={String(dashboard.eventos_mes)} cor="#7C3AED" />
           <StatCard icone="🎫" label="Ticket médio" valor={formatarMoeda(dashboard.ticket_medio)} cor="#FF6B9D" />
         </div>
+
+        {/* Receitas por Categoria */}
+        {dashboard.receita_breakdown && dashboard.receita > 0 && (
+          <Card>
+            <h2 className="text-sm font-semibold mb-4" style={{ color: '#E8E8F0' }}>Origem da Receita</h2>
+            <div className="space-y-4">
+              <div>
+                <div className="flex justify-between text-sm mb-1.5">
+                  <span style={{ color: '#8888AA' }}>🎈 Decoração</span>
+                  <span className="font-medium" style={{ color: '#E8E8F0' }}>{formatarMoeda(dashboard.receita_breakdown.decoracao)}</span>
+                </div>
+                <div className="h-2 rounded-full overflow-hidden" style={{ background: '#2A2A38' }}>
+                  <div className="h-full rounded-full" style={{ width: `${(dashboard.receita_breakdown.decoracao / dashboard.receita) * 100}%`, background: '#FF6B9D' }} />
+                </div>
+              </div>
+              <div>
+                <div className="flex justify-between text-sm mb-1.5">
+                  <span style={{ color: '#8888AA' }}>🏰 Brinquedos</span>
+                  <span className="font-medium" style={{ color: '#E8E8F0' }}>{formatarMoeda(dashboard.receita_breakdown.brinquedos)}</span>
+                </div>
+                <div className="h-2 rounded-full overflow-hidden" style={{ background: '#2A2A38' }}>
+                  <div className="h-full rounded-full" style={{ width: `${(dashboard.receita_breakdown.brinquedos / dashboard.receita) * 100}%`, background: '#7C3AED' }} />
+                </div>
+              </div>
+              <div>
+                <div className="flex justify-between text-sm mb-1.5">
+                  <span style={{ color: '#8888AA' }}>🚚 Frete e Outros</span>
+                  <span className="font-medium" style={{ color: '#E8E8F0' }}>{formatarMoeda(dashboard.receita_breakdown.frete + dashboard.receita_breakdown.outros)}</span>
+                </div>
+                <div className="h-2 rounded-full overflow-hidden" style={{ background: '#2A2A38' }}>
+                  <div className="h-full rounded-full" style={{ width: `${((dashboard.receita_breakdown.frete + dashboard.receita_breakdown.outros) / dashboard.receita) * 100}%`, background: '#8888AA' }} />
+                </div>
+              </div>
+            </div>
+          </Card>
+        )}
 
         {/* Gráfico 6 meses */}
         <Card>

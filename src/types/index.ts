@@ -96,6 +96,9 @@ export interface Evento {
   tipo_entrega: TipoEntrega
   status: StatusEvento
   valor_total: number
+  valor_decoracao?: number
+  valor_brinquedos?: number
+  valor_frete?: number
   valor_sinal: number
   sinal_recebido: boolean
   data_sinal?: string
@@ -167,6 +170,12 @@ export interface ResumoFinanceiro {
   a_receber: number
   eventos_mes: number
   ticket_medio: number
+  receita_breakdown?: {
+    decoracao: number
+    brinquedos: number
+    frete: number
+    outros: number
+  }
 }
 
 // ────────────────────────────────────────────────────────────
