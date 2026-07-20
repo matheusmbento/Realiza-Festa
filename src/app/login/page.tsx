@@ -33,13 +33,13 @@ export default function LoginPage() {
       
       {/* Logo */}
       <div className="mb-10 text-center flex flex-col items-center">
-        <div className="relative w-32 h-32 mb-4 flex items-center justify-center">
+        <div className="relative w-40 h-40 mb-6 flex items-center justify-center">
           {/* Fundo de LED */}
           <div className="absolute inset-0 rounded-full animate-pulse"
-               style={{ background: 'radial-gradient(circle, rgba(255,107,157,0.4) 0%, rgba(255,180,0,0.1) 70%, transparent 100%)', filter: 'blur(20px)' }}>
+               style={{ background: 'radial-gradient(circle, rgba(255,107,157,0.45) 0%, rgba(255,180,0,0.2) 70%, transparent 100%)', filter: 'blur(24px)' }}>
           </div>
           {/* Logo animada */}
-          <img src="/logo.png" alt="Realiza Festa" className="relative z-10 w-28 h-28 object-contain drop-shadow-2xl animate-float" />
+          <img src="/logo.png" alt="Realiza Festa" className="relative z-10 w-32 h-32 object-cover rounded-[1.5rem] shadow-2xl drop-shadow-2xl animate-float" style={{ border: '2px solid rgba(255,255,255,0.05)' }} />
         </div>
         <h1 className="font-display text-4xl font-bold tracking-tight"
             style={{ background: 'linear-gradient(90deg, #FF6B9D, #FFB400)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
