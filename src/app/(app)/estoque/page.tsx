@@ -61,7 +61,7 @@ export default function EstoquePage() {
       </div>
 
       {/* Filtros de categoria */}
-      <div className="flex gap-2 overflow-x-auto pb-1 -mx-1 px-1">
+      <div className="flex gap-2 overflow-x-auto hide-scrollbar pb-1 -mx-1 px-1">
         <button onClick={() => setCategoriaFiltro('')}
           className="flex-shrink-0 px-3 py-1.5 rounded-full text-xs font-medium transition-all"
           style={!categoriaFiltro ? { background: '#FF6B9D', color: '#0F0F14' } : { background: '#1A1A24', color: '#8888AA', border: '1px solid #2A2A38' }}>

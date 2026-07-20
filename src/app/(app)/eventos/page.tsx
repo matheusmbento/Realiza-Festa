@@ -70,7 +70,7 @@ export default function EventosPage() {
       </div>
 
       {/* Filtros de status */}
-      <div className="flex gap-2 overflow-x-auto pb-1 -mx-1 px-1">
+      <div className="flex gap-2 overflow-x-auto hide-scrollbar pb-1 -mx-1 px-1">
         {FILTROS.map(f => (
           <button
             key={f.valor}

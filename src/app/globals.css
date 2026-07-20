@@ -33,6 +33,10 @@ html, body {
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: var(--muted); border-radius: 2px; }
 
+/* Hide scrollbar util */
+.hide-scrollbar::-webkit-scrollbar { display: none; }
+.hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
 /* Seleção */
 ::selection { background: #FF6B9D33; color: var(--text); }
 
