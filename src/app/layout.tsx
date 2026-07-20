@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from 'next'
 import './globals.css'
 import { Toaster } from 'sonner'
+import { SplashScreen } from '@/components/ui/SplashScreen'
 
 export const metadata: Metadata = {
   title: 'Realiza Festa',
@@ -30,6 +31,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <meta name="mobile-web-app-capable" content="yes" />
       </head>
       <body>
+        <SplashScreen />
         {children}
         <Toaster
           theme="dark"
