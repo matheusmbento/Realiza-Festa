@@ -3,7 +3,7 @@ import { Card, StatCard, Badge } from '@/components/ui'
 import { formatarMoeda, formatarData, diasParaEvento, labelData } from '@/lib/utils'
 import { STATUS_CORES, STATUS_LABELS, TIPO_EVENTO_LABELS } from '@/types'
 import Link from 'next/link'
-import { ArrowRight, AlertCircle } from 'lucide-react'
+import { ArrowRight, AlertCircle, ShoppingCart } from 'lucide-react'
 
 export const dynamic = 'force-dynamic'
 
@@ -55,12 +55,23 @@ export default async function Dashboard() {
   // Eventos de hoje
   const eventosHoje = eventosProximos?.filter(e => e.data_evento === hoje) ?? []
 
+  // Avisos pendentes (Checklist com prazos próximos, até 7 dias)
+  const seteDiasFrente = new Date(Date.now() + 7 * 86400000).toISOString().split('T')[0]
+  const { data: avisos } = await supabase
+    .from('checklist_evento')
+    .select('*, evento:eventos(id, nome)')
+    .eq('concluido', false)
+    .not('prazo', 'is', null)
+    .lte('prazo', seteDiasFrente)
+    .order('prazo')
+    .limit(5)
+
   return (
     <div className="space-y-6 fade-in">
       {/* Saudação */}
       <div>
-        <h1 className="font-display text-2xl font-bold" style={{ color: '#E8E8F0' }}>
-          Bom dia! 🎉
+        <h1 className="font-display text-2xl font-bold flex items-center gap-2" style={{ color: '#E8E8F0' }}>
+          Eae Clara 🎉
         </h1>
         <p className="text-sm mt-0.5" style={{ color: '#8888AA' }}>
           {new Date().toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' })}
@@ -82,6 +93,37 @@ export default async function Dashboard() {
               </p>
             ))}
           </div>
+        </div>
+      )}
+
+      {/* Avisos Importantes */}
+      {avisos && avisos.length > 0 && (
+        <div className="space-y-2">
+          {avisos.map(aviso => {
+            const atrasado = aviso.prazo && aviso.prazo < hoje
+            const hojeMesmo = aviso.prazo === hoje
+            return (
+              <Link key={aviso.id} href={`/eventos/${aviso.evento_id}`}>
+                <div className="rounded-2xl p-3.5 flex items-center gap-3 transition-colors hover:bg-white/5"
+                     style={{ 
+                       background: atrasado ? '#F8717115' : '#FFB40015',
+                       border: `1px solid ${atrasado ? '#F8717144' : '#FFB40044'}` 
+                     }}>
+                  <ShoppingCart size={18} style={{ color: atrasado ? '#F87171' : '#FFB400', flexShrink: 0 }} />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium truncate" style={{ color: '#E8E8F0' }}>
+                      {aviso.descricao}
+                    </p>
+                    <p className="text-xs truncate" style={{ color: '#8888AA' }}>
+                      Festa: {aviso.evento?.nome} • <span style={{ color: atrasado ? '#F87171' : (hojeMesmo ? '#FFB400' : '#8888AA') }}>
+                        {atrasado ? 'Atrasado' : hojeMesmo ? 'Vence hoje' : `Vence em ${labelData(aviso.prazo)}`}
+                      </span>
+                    </p>
+                  </div>
+                </div>
+              </Link>
+            )
+          })}
         </div>
       )}
 
