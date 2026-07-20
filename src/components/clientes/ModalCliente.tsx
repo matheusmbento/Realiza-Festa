@@ -43,10 +43,10 @@ export default function ModalCliente({ cliente, onClose, onSuccess }: Props) {
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4"
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4 pb-24 sm:pb-4"
          style={{ background: 'rgba(0,0,0,0.7)' }}
          onClick={e => e.target === e.currentTarget && onClose()}>
-      <div className="w-full max-w-sm rounded-2xl p-5 space-y-4"
+      <div className="w-full max-w-sm rounded-2xl p-5 space-y-4 max-h-[85vh] overflow-y-auto hide-scrollbar"
            style={{ background: '#1A1A24', border: '1px solid #2A2A38' }}>
         <div className="flex items-center justify-between">
           <h2 className="font-semibold text-base" style={{ color: '#E8E8F0' }}>

@@ -49,7 +49,7 @@ export default function ModalDespesa({ eventoId, onClose, onSuccess }: ModalDesp
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex flex-col justify-end lg:items-center lg:justify-center p-4 sm:p-6 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200">
+    <div className="fixed inset-0 z-50 flex flex-col justify-end lg:items-center lg:justify-center p-4 pb-24 lg:pb-6 sm:p-6 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200">
       <div className="w-full max-w-md animate-in slide-in-from-bottom-10 lg:slide-in-from-bottom-0 lg:zoom-in-95">
         <Card className="relative p-6">
           <button onClick={onClose} className="absolute right-4 top-4 p-2 rounded-full hover:bg-white/10" style={{ color: '#8888AA' }}>
