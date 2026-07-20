@@ -15,6 +15,7 @@ import {
 } from '@/types'
 import { toast } from 'sonner'
 import ModalPagamento from '@/components/eventos/ModalPagamento'
+import ModalDespesa from '@/components/eventos/ModalDespesa'
 
 export default function DetalheEvento() {
   const { id } = useParams<{ id: string }>()
@@ -22,6 +23,7 @@ export default function DetalheEvento() {
   const [evento, setEvento] = useState<Evento | null>(null)
   const [loading, setLoading] = useState(true)
   const [modalPag, setModalPag] = useState<'sinal' | 'final' | null>(null)
+  const [modalDesp, setModalDesp] = useState(false)
   const [novoItem, setNovoItem] = useState('')
   const [adicionandoItem, setAdicionandoItem] = useState(false)
 
@@ -99,6 +101,11 @@ export default function DetalheEvento() {
   const alocacoes = evento.alocacoes ?? []
   const alocacoesConcluidas = alocacoes.filter((a: any) => a.confirmado).length
   const saldo = evento.valor_total - evento.valor_sinal
+  
+  // Financeiro
+  const despesas = evento.lancamentos?.filter((l: any) => l.tipo === 'saida') || []
+  const totalDespesas = despesas.reduce((acc: number, d: any) => acc + Number(d.valor), 0)
+  const lucroReal = evento.valor_total - totalDespesas
 
   return (
     <div className="space-y-4 fade-in pb-10">
@@ -143,13 +150,21 @@ export default function DetalheEvento() {
 
         {/* Barra de progresso financeiro */}
         <div className="space-y-3">
-          <div className="flex items-center justify-between text-xs" style={{ color: '#8888AA' }}>
-            <span>Total: {formatarMoeda(evento.valor_total)}</span>
-            <span>
-              {evento.pagamento_final ? 'Quitado ✅'
-               : evento.sinal_recebido ? `Saldo: ${formatarMoeda(saldo)}`
-               : 'Aguardando pagamento'}
-            </span>
+          <div className="flex flex-col gap-1 text-xs mb-2">
+            <div className="flex items-center justify-between" style={{ color: '#8888AA' }}>
+              <span>Total cobrado: {formatarMoeda(evento.valor_total)}</span>
+              <span>
+                {evento.pagamento_final ? 'Quitado ✅'
+                 : evento.sinal_recebido ? `Saldo a receber: ${formatarMoeda(saldo)}`
+                 : 'Aguardando pagamento'}
+              </span>
+            </div>
+            
+            {/* Lucro Real */}
+            <div className="flex items-center justify-between font-medium pt-1 mt-1 border-t" style={{ borderColor: '#2A2A38', color: '#E8E8F0' }}>
+              <span>Lucro Líquido: <span style={{ color: '#4ADE80' }}>{formatarMoeda(lucroReal)}</span></span>
+              <span>Despesas: <span style={{ color: '#F87171' }}>{formatarMoeda(totalDespesas)}</span></span>
+            </div>
           </div>
           <div className="h-2 rounded-full" style={{ background: '#2A2A38' }}>
             <div className="h-full rounded-full transition-all duration-500"
@@ -359,6 +374,43 @@ export default function DetalheEvento() {
         )}
       </Card>
 
+      {/* Despesas do Evento */}
+      <Card>
+        <div className="flex items-center justify-between mb-3">
+          <h2 className="text-sm font-semibold" style={{ color: '#F87171' }}>
+            Despesas do Evento
+          </h2>
+          <button onClick={() => setModalDesp(true)} className="text-xs px-2.5 py-1 rounded-lg transition-colors hover:bg-white/5" style={{ background: '#F8717122', color: '#F87171' }}>
+            <Plus size={12} className="inline mr-1" />
+            Adicionar
+          </button>
+        </div>
+        {despesas.length === 0 ? (
+          <p className="text-sm text-center py-4" style={{ color: '#8888AA' }}>
+            Nenhuma despesa registrada
+          </p>
+        ) : (
+          <div className="space-y-2">
+            {despesas.map((despesa: any) => (
+              <div key={despesa.id} className="flex items-center justify-between py-2 border-b last:border-0" style={{ borderColor: '#2A2A38' }}>
+                <div className="flex items-center gap-2.5">
+                  <div className="w-8 h-8 rounded-lg flex items-center justify-center text-sm" style={{ background: '#F8717122' }}>
+                    📉
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium" style={{ color: '#E8E8F0' }}>{despesa.descricao}</p>
+                    <span className="text-xs" style={{ color: '#8888AA' }}>{formatarData(despesa.data)}</span>
+                  </div>
+                </div>
+                <span className="text-sm font-medium" style={{ color: '#F87171' }}>
+                  -{formatarMoeda(despesa.valor)}
+                </span>
+              </div>
+            ))}
+          </div>
+        )}
+      </Card>
+
       {/* Checklist de Tarefas Extras */}
       <Card>
         <div className="flex items-center justify-between mb-3">
@@ -386,12 +438,19 @@ export default function DetalheEvento() {
                   ? <CheckCircle2 size={20} style={{ color: '#4ADE80' }} />
                   : <Circle size={20} style={{ color: '#3A3A50' }} />}
               </button>
-              <span className="flex-1 text-sm" style={{
-                color: item.concluido ? '#8888AA' : '#E8E8F0',
-                textDecoration: item.concluido ? 'line-through' : 'none',
-              }}>
-                {item.descricao}
-              </span>
+              <div className="flex-1">
+                <p className="text-sm" style={{
+                  color: item.concluido ? '#8888AA' : '#E8E8F0',
+                  textDecoration: item.concluido ? 'line-through' : 'none',
+                }}>
+                  {item.descricao}
+                </p>
+                {item.prazo && (
+                  <p className="text-xs font-medium mt-0.5" style={{ color: item.concluido ? '#8888AA' : (new Date(item.prazo) < new Date() ? '#F87171' : '#FFB400') }}>
+                    Prazo: {formatarData(item.prazo)}
+                  </p>
+                )}
+              </div>
               <button onClick={() => removerChecklist(item.id)}
                 className="opacity-0 group-hover:opacity-100 p-1 transition-opacity">
                 <Trash2 size={14} style={{ color: '#F87171' }} />
@@ -433,6 +492,15 @@ export default function DetalheEvento() {
           evento={evento}
           onClose={() => setModalPag(null)}
           onSuccess={() => { setModalPag(null); carregar() }}
+        />
+      )}
+
+      {/* Modal de Despesa */}
+      {modalDesp && (
+        <ModalDespesa
+          eventoId={evento.id}
+          onClose={() => setModalDesp(false)}
+          onSuccess={() => { setModalDesp(false); carregar() }}
         />
       )}
     </div>

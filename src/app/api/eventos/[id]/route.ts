@@ -16,7 +16,8 @@ export async function GET(_: NextRequest, { params }: Params) {
         item:itens_estoque(id, nome, foto_url, quantidade,
           categoria:categorias_estoque(id, nome, cor, icone))
       ),
-      checklist:checklist_evento(id, descricao, concluido, prazo)
+      checklist:checklist_evento(id, descricao, concluido, prazo),
+      lancamentos:lancamentos(id, tipo, valor, descricao, data, categoria)
     `)
     .eq('id', params.id)
     .single()

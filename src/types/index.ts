@@ -112,6 +112,7 @@ export interface Evento {
   // Relacionamentos
   alocacoes?: AlocacaoEvento[]
   checklist?: ChecklistItem[]
+  lancamentos?: Lancamento[]
 }
 
 // ────────────────────────────────────────────────────────────

@@ -44,5 +44,18 @@ export async function POST(req: NextRequest) {
     .single()
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+
+  // Criar lembrete automático de compras 5 dias antes
+  if (data.data_evento) {
+    const dataEvento = new Date(data.data_evento)
+    dataEvento.setDate(dataEvento.getDate() - 5) // Subtrai 5 dias
+    
+    await supabase.from('checklist_evento').insert({
+      evento_id: data.id,
+      descricao: '⚠️ Lembrete Automático: Comprar bexigas e descartáveis',
+      prazo: dataEvento.toISOString().split('T')[0]
+    })
+  }
+
   return NextResponse.json(data, { status: 201 })
 }
