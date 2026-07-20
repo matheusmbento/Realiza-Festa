@@ -43,6 +43,15 @@ export default function DetalheEvento() {
     if (res.ok) { toast.success('Status atualizado'); carregar() }
   }
 
+  async function toggleAlocacao(aloc: any) {
+    await fetch('/api/alocacoes', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id: aloc.id, confirmado: !aloc.confirmado }),
+    })
+    carregar()
+  }
+
   async function toggleChecklist(item: ChecklistItem) {
     await fetch('/api/checklist', {
       method: 'PATCH',
@@ -88,6 +97,7 @@ export default function DetalheEvento() {
   const checklist = evento.checklist ?? []
   const concluidos = checklist.filter(i => i.concluido).length
   const alocacoes = evento.alocacoes ?? []
+  const alocacoesConcluidas = alocacoes.filter((a: any) => a.confirmado).length
   const saldo = evento.valor_total - evento.valor_sinal
 
   return (
@@ -283,21 +293,31 @@ export default function DetalheEvento() {
         )}
       </Card>
 
-      {/* Itens alocados */}
+      {/* Romaneio de Carga */}
       <Card>
         <div className="flex items-center justify-between mb-3">
           <h2 className="text-sm font-semibold" style={{ color: '#E8E8F0' }}>
-            Itens do evento
+            Romaneio de Carga
             <span className="ml-2 text-xs font-normal" style={{ color: '#8888AA' }}>
-              {alocacoes.length} item{alocacoes.length !== 1 ? 's' : ''}
+              {alocacoesConcluidas}/{alocacoes.length}
             </span>
           </h2>
-          <Link href={`/eventos/${id}/itens`}>
-            <button className="text-xs px-2.5 py-1 rounded-lg" style={{ background: '#2A2A38', color: '#E8E8F0' }}>
-              <Plus size={12} className="inline mr-1" />
-              Adicionar
-            </button>
-          </Link>
+          <div className="flex items-center gap-3">
+            {alocacoes.length > 0 && (
+              <div className="w-16 h-1.5 rounded-full hidden sm:block" style={{ background: '#2A2A38' }}>
+                <div className="h-full rounded-full transition-all" style={{
+                  width: `${(alocacoesConcluidas / alocacoes.length) * 100}%`,
+                  background: '#4ADE80',
+                }} />
+              </div>
+            )}
+            <Link href={`/eventos/${id}/itens`}>
+              <button className="text-xs px-2.5 py-1 rounded-lg transition-colors hover:bg-white/5" style={{ background: '#2A2A38', color: '#E8E8F0' }}>
+                <Plus size={12} className="inline mr-1" />
+                Adicionar
+              </button>
+            </Link>
+          </div>
         </div>
         {alocacoes.length === 0 ? (
           <p className="text-sm text-center py-4" style={{ color: '#8888AA' }}>
@@ -322,12 +342,15 @@ export default function DetalheEvento() {
                       )}
                     </div>
                   </div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-3">
                     <span className="text-sm font-medium" style={{ color: '#E8E8F0' }}>
                       × {aloc.quantidade}
                     </span>
-                    <span className="w-2 h-2 rounded-full"
-                          style={{ background: aloc.confirmado ? '#4ADE80' : '#FFB400' }} />
+                    <button onClick={() => toggleAlocacao(aloc)} className="flex-shrink-0 transition-transform active:scale-95">
+                      {aloc.confirmado
+                        ? <CheckCircle2 size={24} style={{ color: '#4ADE80' }} />
+                        : <Circle size={24} style={{ color: '#3A3A50' }} />}
+                    </button>
                   </div>
                 </div>
               )
@@ -336,11 +359,11 @@ export default function DetalheEvento() {
         )}
       </Card>
 
-      {/* Checklist */}
+      {/* Checklist de Tarefas Extras */}
       <Card>
         <div className="flex items-center justify-between mb-3">
           <h2 className="text-sm font-semibold" style={{ color: '#E8E8F0' }}>
-            Checklist
+            Tarefas Extras
             <span className="ml-2 text-xs font-normal" style={{ color: '#8888AA' }}>
               {concluidos}/{checklist.length}
             </span>
