@@ -32,9 +32,16 @@ export default function LoginPage() {
          style={{ background: 'linear-gradient(135deg, #0F0F14 0%, #1A0A1F 100%)' }}>
       
       {/* Logo */}
-      <div className="mb-10 text-center">
-        <div className="text-5xl mb-3">🎉</div>
-        <h1 className="font-display text-3xl font-bold"
+      <div className="mb-10 text-center flex flex-col items-center">
+        <div className="relative w-32 h-32 mb-4 flex items-center justify-center">
+          {/* Fundo de LED */}
+          <div className="absolute inset-0 rounded-full animate-pulse"
+               style={{ background: 'radial-gradient(circle, rgba(255,107,157,0.4) 0%, rgba(255,180,0,0.1) 70%, transparent 100%)', filter: 'blur(20px)' }}>
+          </div>
+          {/* Logo animada */}
+          <img src="/logo.png" alt="Realiza Festa" className="relative z-10 w-28 h-28 object-contain drop-shadow-2xl animate-float" />
+        </div>
+        <h1 className="font-display text-4xl font-bold tracking-tight"
             style={{ background: 'linear-gradient(90deg, #FF6B9D, #FFB400)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
           Realiza Festa
         </h1>

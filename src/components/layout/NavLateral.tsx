@@ -34,15 +34,22 @@ export default function NavLateral({ perfil }: { perfil: Perfil | null }) {
          style={{ background: '#1A1A24', borderColor: '#2A2A38' }}>
       
       {/* Logo */}
-      <div className="flex items-center gap-3 px-5 py-5 border-b" style={{ borderColor: '#2A2A38' }}>
-        <span className="text-2xl">🎉</span>
-        <div>
-          <p className="font-display font-bold text-base leading-tight"
+      <div className="flex flex-col items-center justify-center py-6 border-b" style={{ borderColor: '#2A2A38' }}>
+        <div className="relative w-20 h-20 mb-3 flex items-center justify-center">
+          {/* Fundo de LED */}
+          <div className="absolute inset-0 rounded-full animate-pulse"
+               style={{ background: 'radial-gradient(circle, rgba(255,107,157,0.3) 0%, rgba(255,180,0,0.1) 70%, transparent 100%)', filter: 'blur(15px)' }}>
+          </div>
+          {/* Logo animada */}
+          <img src="/logo.png" alt="Realiza Festa" className="relative z-10 w-16 h-16 object-contain drop-shadow-xl animate-float" />
+        </div>
+        <div className="text-center">
+          <p className="font-display font-bold text-lg leading-tight"
              style={{ background: 'linear-gradient(90deg, #FF6B9D, #FFB400)',
                       WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
             Realiza Festa
           </p>
-          <p className="text-xs" style={{ color: '#8888AA' }}>Gestão de eventos</p>
+          <p className="text-xs mt-0.5" style={{ color: '#8888AA' }}>Gestão de eventos</p>
         </div>
       </div>
 
