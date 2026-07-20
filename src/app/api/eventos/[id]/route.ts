@@ -44,6 +44,11 @@ export async function PATCH(req: NextRequest, { params }: Params) {
 export async function DELETE(_: NextRequest, { params }: Params) {
   const supabase = createServerSupabase()
 
+  // Deletar dependências primeiro para evitar erro de Foreign Key
+  await supabase.from('alocacoes_evento').delete().eq('evento_id', params.id)
+  await supabase.from('checklist_evento').delete().eq('evento_id', params.id)
+  await supabase.from('lancamentos').delete().eq('evento_id', params.id)
+
   const { error } = await supabase
     .from('eventos')
     .delete()
