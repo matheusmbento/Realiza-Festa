@@ -39,7 +39,7 @@ export default function LoginPage() {
                style={{ background: 'radial-gradient(circle, rgba(255,107,157,0.45) 0%, rgba(255,180,0,0.2) 70%, transparent 100%)', filter: 'blur(24px)' }}>
           </div>
           {/* Logo animada */}
-          <img src="/logo.png" alt="Realiza Festa" className="relative z-10 w-32 h-32 object-cover rounded-[1.5rem] shadow-2xl drop-shadow-2xl animate-float" style={{ border: '2px solid rgba(255,255,255,0.05)' }} />
+          <img src="/logo.png" alt="Realiza Festa" className="relative z-10 w-32 h-32 object-cover rounded-3xl overflow-hidden shadow-2xl drop-shadow-2xl animate-float" style={{ border: '2px solid rgba(255,255,255,0.05)' }} />
         </div>
         <h1 className="font-display text-4xl font-bold tracking-tight"
             style={{ background: 'linear-gradient(90deg, #FF6B9D, #FFB400)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>

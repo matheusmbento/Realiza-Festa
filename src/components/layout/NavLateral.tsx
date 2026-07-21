@@ -41,7 +41,7 @@ export default function NavLateral({ perfil }: { perfil: Perfil | null }) {
                style={{ background: 'radial-gradient(circle, rgba(255,107,157,0.35) 0%, rgba(255,180,0,0.15) 70%, transparent 100%)', filter: 'blur(16px)' }}>
           </div>
           {/* Logo animada premium */}
-          <img src="/logo.png" alt="Realiza Festa" className="relative z-10 w-24 h-24 object-cover rounded-[1.25rem] shadow-2xl drop-shadow-xl animate-float" style={{ border: '2px solid rgba(255,255,255,0.05)' }} />
+          <img src="/logo.png" alt="Realiza Festa" className="relative z-10 w-24 h-24 object-cover rounded-3xl overflow-hidden shadow-2xl drop-shadow-xl animate-float" style={{ border: '2px solid rgba(255,255,255,0.05)' }} />
         </div>
         <div className="text-center">
           <p className="font-display font-bold text-lg leading-tight"
