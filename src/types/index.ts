@@ -50,10 +50,13 @@ export interface Cliente {
   endereco?: string
   cidade?: string
   observacoes?: string
+  filhos?: string
   criado_em: string
   // Calculado no front
   total_eventos?: number
   ultimo_evento?: string
+  ltv?: number
+  ticket_medio?: number
 }
 
 // ────────────────────────────────────────────────────────────

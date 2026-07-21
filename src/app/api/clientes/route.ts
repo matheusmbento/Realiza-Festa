@@ -16,7 +16,9 @@ export async function GET(req: NextRequest) {
     `)
     .order('nome')
 
-  if (busca) query = query.ilike('nome', `%${busca}%`)
+  if (busca) {
+    query = query.or(`nome.ilike.%${busca}%,observacoes.ilike.%${busca}%,filhos.ilike.%${busca}%`)
+  }
 
   query = query.range(offset, offset + limit - 1)
 

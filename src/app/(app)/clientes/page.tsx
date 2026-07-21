@@ -7,6 +7,7 @@ import { iniciais, telWhatsapp, formatarData, labelData } from '@/lib/utils'
 import { TIPO_EVENTO_LABELS } from '@/types'
 import type { Cliente } from '@/types'
 import ModalCliente from '@/components/clientes/ModalCliente'
+import Link from 'next/link'
 
 export default function ClientesPage() {
   const [clientes, setClientes] = useState<Cliente[]>([])
@@ -77,11 +78,20 @@ export default function ClientesPage() {
       {aba === 'clientes' && <>
         <div className="relative">
           <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2" style={{ color: '#8888AA' }} />
-          <input value={busca} onChange={e => setBusca(e.target.value)} placeholder="Buscar cliente..."
+          <input value={busca} onChange={e => setBusca(e.target.value)} placeholder="Buscar cliente ou observação..."
             className="w-full rounded-xl pl-10 pr-4 py-3 text-sm outline-none"
             style={{ background: '#1A1A24', border: '1px solid #2A2A38', color: '#E8E8F0' }}
             onFocus={e => e.target.style.borderColor = '#FF6B9D'}
             onBlur={e => e.target.style.borderColor = '#2A2A38'} />
+        </div>
+        
+        {/* Filtros Rápidos */}
+        <div className="flex gap-2 overflow-x-auto pb-1 no-scrollbar">
+          <button onClick={() => setBusca(new Date().toLocaleDateString('pt-BR', { month: '2-digit' }) + '/')}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-colors"
+            style={{ background: '#FF6B9D22', color: '#FF6B9D', border: '1px solid #FF6B9D44' }}>
+            🎂 Aniversariantes do Mês
+          </button>
         </div>
         {loading ? <Loading /> : clientes.length === 0 ? (
           <EmptyState icone="👥" titulo="Nenhum cliente ainda"
@@ -90,39 +100,48 @@ export default function ClientesPage() {
         ) : (
           <div className="space-y-2">
             {clientes.map(cliente => {
-              const eventos = (cliente as unknown as { eventos?: { id: string; nome: string; data_evento: string; tipo_evento: string }[] }).eventos ?? []
+              const eventos = (cliente as unknown as { eventos?: { id: string; nome: string; data_evento: string; tipo_evento: string; pagamento_final?: boolean; status: string }[] }).eventos ?? []
               const ultimo = eventos.sort((a, b) => b.data_evento.localeCompare(a.data_evento))[0]
+              
+              const isVip = eventos.length >= 3
+              const pendente = eventos.some(e => e.pagamento_final === false && e.status !== 'cancelado')
+
               return (
-                <Card key={cliente.id} onClick={() => setModal(cliente)}
-                  className="cursor-pointer hover:border-pink-500/20 transition-colors">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0"
-                         style={{ background: 'linear-gradient(135deg, #FF6B9D, #FFB400)', color: '#0F0F14' }}>
-                      {iniciais(cliente.nome)}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="font-semibold text-sm" style={{ color: '#E8E8F0' }}>{cliente.nome}</p>
-                      <div className="flex items-center gap-2 mt-0.5">
+                <Link key={cliente.id} href={`/clientes/${cliente.id}`}>
+                  <Card className="hover:border-pink-500/20 transition-colors">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0"
+                           style={{ background: 'linear-gradient(135deg, #FF6B9D, #FFB400)', color: '#0F0F14' }}>
+                        {iniciais(cliente.nome)}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2">
+                          <p className="font-semibold text-sm truncate" style={{ color: '#E8E8F0' }}>{cliente.nome}</p>
+                          {isVip && <span className="text-[10px] font-bold px-1.5 py-0.5 rounded flex-shrink-0" style={{ background: '#FFB40022', color: '#FFB400' }}>VIP</span>}
+                          {pendente && <span className="text-[10px] font-bold px-1.5 py-0.5 rounded flex-shrink-0" style={{ background: '#F8717122', color: '#F87171' }}>Pendente</span>}
+                        </div>
+                        <p className="text-xs mt-0.5 truncate" style={{ color: '#8888AA' }}>
+                           Último: {ultimo ? `${ultimo.nome} • ${labelData(ultimo.data_evento)}` : 'Nenhum evento'}
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-2 flex-shrink-0">
                         {cliente.telefone && (
                           <a href={telWhatsapp(cliente.telefone)} target="_blank" rel="noopener noreferrer"
-                            onClick={e => e.stopPropagation()}
-                            className="flex items-center gap-1 text-xs" style={{ color: '#25D366' }}>
-                            <Phone size={10} /> {cliente.telefone}
+                             onClick={e => e.stopPropagation()}
+                             className="p-1.5 rounded-lg hover:bg-green-500/20 transition-colors" style={{ color: '#25D366' }}>
+                            <Phone size={16} />
                           </a>
                         )}
+                        <Link href={`/eventos/novo?cliente_id=${cliente.id}`}
+                              onClick={e => e.stopPropagation()}
+                              className="p-1.5 rounded-lg hover:bg-pink-500/20 transition-colors" style={{ color: '#FF6B9D' }}>
+                          <Plus size={16} />
+                        </Link>
+                        <ChevronRight size={16} style={{ color: '#3A3A50' }} />
                       </div>
-                      {ultimo && (
-                        <p className="text-xs mt-0.5" style={{ color: '#8888AA' }}>
-                          Último: {ultimo.nome} • {labelData(ultimo.data_evento)}
-                        </p>
-                      )}
                     </div>
-                    <div className="flex items-center gap-2">
-                      <Badge color="#7C3AED">{eventos.length} evento{eventos.length !== 1 ? 's' : ''}</Badge>
-                      <ChevronRight size={16} style={{ color: '#3A3A50' }} />
-                    </div>
-                  </div>
-                </Card>
+                  </Card>
+                </Link>
               )
             })}
             
