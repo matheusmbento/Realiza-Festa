@@ -88,7 +88,7 @@ export default function TarefasPendentes({ avisosIniciais }: { avisosIniciais: C
                   </Link>
                   <span>•</span>
                   <span style={{ color: atrasado ? '#F87171' : (hojeMesmo ? '#FFB400' : '#8888AA'), fontWeight: atrasado || hojeMesmo ? 600 : 400 }}>
-                    {atrasado ? 'Atrasado' : hojeMesmo ? 'Vence hoje' : `Vence ${labelData(aviso.prazo)}`}
+                    {atrasado ? 'Atrasado' : hojeMesmo ? 'Vence hoje' : `Vence em ${labelData(aviso.prazo!)}`}
                   </span>
                 </div>
               </div>
