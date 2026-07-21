@@ -12,28 +12,50 @@ export default function ClientesPage() {
   const [clientes, setClientes] = useState<Cliente[]>([])
   const [leads, setLeads] = useState<{ id: string; data_estimada: string; tipo_sugerido: string; cliente?: { nome: string } }[]>([])
   const [loading, setLoading] = useState(true)
+  const [loadingMore, setLoadingMore] = useState(false)
+  const [hasMore, setHasMore] = useState(true)
   const [busca, setBusca] = useState('')
   const [modal, setModal] = useState<Cliente | null | 'novo'>(null)
   const [aba, setAba] = useState<'clientes' | 'leads'>('clientes')
 
-  const carregar = useCallback(async () => {
+  const carregarInicial = useCallback(async () => {
     setLoading(true)
+    const limit = busca ? 15 : 5
     const params = new URLSearchParams()
     if (busca) params.set('busca', busca)
+    params.set('limit', limit.toString())
+    params.set('offset', '0')
+
     const [cRes, lRes] = await Promise.all([
       fetch(`/api/clientes?${params}`).then(r => r.json()),
       fetch('/api/clientes/leads?status=aberto').then(r => r.json()),
     ])
+    setHasMore(cRes.length === limit)
     setClientes(cRes)
     setLeads(lRes)
     setLoading(false)
   }, [busca])
 
-  useEffect(() => { const t = setTimeout(carregar, 300); return () => clearTimeout(t) }, [carregar])
+  useEffect(() => { const t = setTimeout(carregarInicial, 300); return () => clearTimeout(t) }, [carregarInicial])
+
+  async function carregarMais() {
+    setLoadingMore(true)
+    const limit = 15
+    const params = new URLSearchParams()
+    if (busca) params.set('busca', busca)
+    params.set('limit', limit.toString())
+    params.set('offset', clientes.length.toString())
+
+    const cRes = await fetch(`/api/clientes?${params}`).then(r => r.json())
+    
+    setHasMore(cRes.length === limit)
+    setClientes(prev => [...prev, ...cRes])
+    setLoadingMore(false)
+  }
 
   async function atualizarLead(id: string, status: string) {
     await fetch('/api/clientes/leads', { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id, status }) })
-    carregar()
+    carregarInicial()
   }
 
   return (
@@ -103,6 +125,17 @@ export default function ClientesPage() {
                 </Card>
               )
             })}
+            
+            {hasMore && (
+              <Button 
+                variante="secundario" 
+                className="w-full mt-4" 
+                onClick={carregarMais} 
+                loading={loadingMore}
+              >
+                Carregar mais clientes ▾
+              </Button>
+            )}
           </div>
         )}
       </>}
@@ -148,7 +181,7 @@ export default function ClientesPage() {
 
       {modal !== null && (
         <ModalCliente cliente={modal === 'novo' ? null : modal}
-          onClose={() => setModal(null)} onSuccess={() => { setModal(null); carregar() }} />
+          onClose={() => setModal(null)} onSuccess={() => { setModal(null); carregarInicial() }} />
       )}
     </div>
   )

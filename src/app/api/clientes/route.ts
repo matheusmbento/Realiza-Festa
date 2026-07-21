@@ -5,6 +5,8 @@ export async function GET(req: NextRequest) {
   const supabase = createServerSupabase()
   const { searchParams } = new URL(req.url)
   const busca = searchParams.get('busca')
+  const limit  = parseInt(searchParams.get('limit') || '50')
+  const offset = parseInt(searchParams.get('offset') || '0')
 
   let query = supabase
     .from('clientes')
@@ -15,6 +17,8 @@ export async function GET(req: NextRequest) {
     .order('nome')
 
   if (busca) query = query.ilike('nome', `%${busca}%`)
+
+  query = query.range(offset, offset + limit - 1)
 
   const { data, error } = await query
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })

@@ -19,25 +19,49 @@ const FILTROS: { label: string; valor: string }[] = [
 export default function EventosPage() {
   const [eventos, setEventos] = useState<Evento[]>([])
   const [loading, setLoading] = useState(true)
+  const [loadingMore, setLoadingMore] = useState(false)
+  const [hasMore, setHasMore] = useState(true)
   const [busca, setBusca] = useState('')
   const [filtroStatus, setFiltroStatus] = useState('')
 
-  const buscarEventos = useCallback(async () => {
+  const carregarInicial = useCallback(async () => {
     setLoading(true)
+    const limit = busca ? 15 : 5
     const params = new URLSearchParams()
     if (busca) params.set('busca', busca)
     if (filtroStatus) params.set('status', filtroStatus)
+    params.set('limit', limit.toString())
+    params.set('offset', '0')
 
     const res = await fetch(`/api/eventos?${params}`)
     const data = await res.json()
+    
+    setHasMore(data.length === limit)
     setEventos(data)
     setLoading(false)
   }, [busca, filtroStatus])
 
   useEffect(() => {
-    const timer = setTimeout(buscarEventos, 300)
+    const timer = setTimeout(carregarInicial, 300)
     return () => clearTimeout(timer)
-  }, [buscarEventos])
+  }, [carregarInicial])
+
+  async function carregarMais() {
+    setLoadingMore(true)
+    const limit = 15
+    const params = new URLSearchParams()
+    if (busca) params.set('busca', busca)
+    if (filtroStatus) params.set('status', filtroStatus)
+    params.set('limit', limit.toString())
+    params.set('offset', eventos.length.toString())
+
+    const res = await fetch(`/api/eventos?${params}`)
+    const data = await res.json()
+
+    setHasMore(data.length === limit)
+    setEventos(prev => [...prev, ...data])
+    setLoadingMore(false)
+  }
 
   return (
     <div className="space-y-5 fade-in">
@@ -167,6 +191,17 @@ export default function EventosPage() {
               </Link>
             )
           })}
+          
+          {hasMore && (
+            <Button 
+              variante="secundario" 
+              className="w-full mt-4" 
+              onClick={carregarMais} 
+              loading={loadingMore}
+            >
+              Carregar mais eventos ▾
+            </Button>
+          )}
         </div>
       )}
     </div>

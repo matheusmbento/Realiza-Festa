@@ -8,6 +8,8 @@ export async function GET(req: NextRequest) {
   const busca  = searchParams.get('busca')
   const inicio = searchParams.get('inicio')
   const fim    = searchParams.get('fim')
+  const limit  = parseInt(searchParams.get('limit') || '50')
+  const offset = parseInt(searchParams.get('offset') || '0')
 
   let query = supabase
     .from('eventos')
@@ -27,6 +29,9 @@ export async function GET(req: NextRequest) {
   if (busca)  query = query.ilike('nome', `%${busca}%`)
   if (inicio) query = query.gte('data_evento', inicio)
   if (fim)    query = query.lte('data_evento', fim)
+
+  // Paginação inclusiva do Supabase (0 até limit-1)
+  query = query.range(offset, offset + limit - 1)
 
   const { data, error } = await query
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
