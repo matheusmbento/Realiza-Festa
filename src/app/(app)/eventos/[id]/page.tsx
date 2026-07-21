@@ -1,4 +1,4 @@
-﻿'use client'
+'use client'
 
 import { useState, useEffect, useCallback } from 'react'
 import { useParams, useRouter } from 'next/navigation'
@@ -178,33 +178,33 @@ export default function DetalheEvento() {
     }
 
     const partes = [
-      `✅ *Confirmação de Evento — Realiza Festa*`,
+      `\u2705 *Confirma\u00E7\u00E3o de Evento \u2014 Realiza Festa*`,
       ``,
-      `Olá, ${nomeCliente}! 🎉`,
+      `Ol\u00E1, ${nomeCliente}! \u{1F389}`,
       `Segue o resumo da sua festa confirmada:`,
       ``,
-      `📅 *Data:* ${fmtData(evento.data_evento)}`,
+      `\u{1F4C5} *Data:* ${fmtData(evento.data_evento)}`,
       evento.hora_inicio
-        ? `🕒 *Horário:* ${evento.hora_inicio.slice(0,5)}${evento.hora_montagem ? ` (montagem a partir das ${evento.hora_montagem.slice(0,5)})` : ''}`
+        ? `\u{1F552} *Hor\u00E1rio:* ${evento.hora_inicio.slice(0,5)}${evento.hora_montagem ? ` (montagem a partir das ${evento.hora_montagem.slice(0,5)})` : ''}`
         : null,
-      linhaLocal ? `📍 *Local:* ${linhaLocal}` : null,
-      evento.tema ? `🎨 *Tema:* ${evento.tema}` : null,
+      linhaLocal ? `\u{1F4CD} *Local:* ${linhaLocal}` : null,
+      evento.tema ? `\u{1F3A8} *Tema:* ${evento.tema}` : null,
       evento.cores?.length
-        ? `🎀 *Cores:* ${evento.cores.join(', ')}`
+        ? `\u{1F380} *Cores:* ${evento.cores.join(', ')}`
         : null,
-      `🚚 *Entrega:* ${tipoEntregaLabel[evento.tipo_entrega] ?? evento.tipo_entrega}`,
+      `\u{1F69A} *Entrega:* ${tipoEntregaLabel[evento.tipo_entrega] ?? evento.tipo_entrega}`,
       ``,
-      `💰 *Valor total:* ${fmtMoeda(evento.valor_total)}`,
+      `\u{1F4B0} *Valor total:* ${fmtMoeda(evento.valor_total)}`,
       evento.sinal_recebido
-        ? `✅ *Sinal pago:* ${fmtMoeda(evento.valor_sinal)}${evento.data_sinal ? ` (${new Date(evento.data_sinal + 'T12:00').toLocaleDateString('pt-BR')})` : ''}`
-        : `⏳ *Sinal:* ${fmtMoeda(evento.valor_sinal)} (aguardando)`,
+        ? `\u2705 *Sinal pago:* ${fmtMoeda(evento.valor_sinal)}${evento.data_sinal ? ` (${new Date(evento.data_sinal + 'T12:00').toLocaleDateString('pt-BR')})` : ''}`
+        : `\u23F3 *Sinal:* ${fmtMoeda(evento.valor_sinal)} (aguardando)`,
       saldo > 0
-        ? `⏳ *Restante:* ${fmtMoeda(saldo)} (a pagar no dia)`
-        : `✅ *Pagamento:* Quitado`,
+        ? `\u23F3 *Restante:* ${fmtMoeda(saldo)} (a pagar no dia)`
+        : `\u2705 *Pagamento:* Quitado`,
       ``,
-      `Qualquer dúvida, pode chamar! 💕`,
-      `Acompanhe as novidades no nosso Instagram: @realizafesta1 📸`,
-      `— Realiza Festa`,
+      `Qualquer d\u00FAvida, pode chamar! \u{1F495}`,
+      `Acompanhe as novidades no nosso Instagram: @realizafesta1 \u{1F4F8}`,
+      `\u2014 Realiza Festa`,
     ].filter((l): l is string => l !== null)
 
     return partes.join('\n')
@@ -218,15 +218,15 @@ export default function DetalheEvento() {
     if (tipo === 'confirmacao') return gerarMensagemConfirmacao()
 
     if (tipo === 'pre_evento') {
-      return `Olá, ${nomeCliente}! 🎉\n\nPassando aqui para lembrar que faltam poucos dias para a nossa festa! Está tudo preparadinho por aqui.\n\nSe tiver alguma dúvida de última hora ou precisar ajustar algum detalhe, é só me chamar! 💕\n\nAproveite e acompanhe nossas montagens no Instagram @realizafesta1 📸\n\n— Realiza Festa`
+      return `Ol\u00E1, ${nomeCliente}! \u{1F389}\n\nPassando aqui para lembrar que faltam poucos dias para a nossa festa! Est\u00E1 tudo preparadinho por aqui.\n\nSe tiver alguma d\u00FAvida de \u00FAltima hora ou precisar ajustar algum detalhe, \u00E9 s\u00F3 me chamar! \u{1F495}\n\nAproveite e acompanhe nossas montagens no Instagram @realizafesta1 \u{1F4F8}\n\n\u2014 Realiza Festa`
     }
 
     if (tipo === 'feedback') {
-      return `Olá, ${nomeCliente}! Tudo bem? 🌟\n\nPassando para agradecer mais uma vez a confiança no nosso trabalho! Como foi a festa? Deu tudo certo com os nossos itens? \n\nNosso maior objetivo é sempre garantir a alegria da festa, então adoraríamos saber o que você achou!\n\nAh, e se tiver alguma foto linda da decoração, não esqueça de nos marcar no Instagram @realizafesta1 📸 Vamos adorar ver e repostar!\n\nUm abraço,\n— Realiza Festa`
+      return `Ol\u00E1, ${nomeCliente}! Tudo bem? \u{1F31F}\n\nPassando para agradecer mais uma vez a confian\u00E7a no nosso trabalho! Como foi a festa? Deu tudo certo com os nossos itens? \n\nNosso maior objetivo \u00E9 sempre garantir a alegria da festa, ent\u00E3o adorar\u00EDamos saber o que voc\u00EA achou!\n\nAh, e se tiver alguma foto linda da decora\u00E7\u00E3o, n\u00E3o esque\u00E7a de nos marcar no Instagram @realizafesta1 \u{1F4F8} Vamos adorar ver e repostar!\n\nUm abra\u00E7o,\n\u2014 Realiza Festa`
     }
 
     if (tipo === 'pos_venda') {
-      return `Olá, ${nomeCliente}! Tudo bem? 🎂\n\nLogo logo vai fazer 1 ano daquela festa linda que fizemos juntos! Como o tempo voa, né?\n\nPassando só pra avisar que estamos com várias novidades incríveis para o próximo evento. Se já estiver planejando algo, me dá um toque pra já garantirmos a sua data!\n\nVocê pode espiar as decorações novas lá no nosso Instagram @realizafesta1 📸\n\nUm abraço,\n— Realiza Festa`
+      return `Ol\u00E1, ${nomeCliente}! Tudo bem? \u{1F382}\n\nLogo logo vai fazer 1 ano daquela festa linda que fizemos juntos! Como o tempo voa, n\u00E9?\n\nPassando s\u00F3 pra avisar que estamos com v\u00E1rias novidades incr\u00EDveis para o pr\u00F3ximo evento. Se j\u00E1 estiver planejando algo, me d\u00E1 um toque pra j\u00E1 garantirmos a sua data!\n\nVoc\u00EA pode espiar as decora\u00E7\u00F5es novas l\u00E1 no nosso Instagram @realizafesta1 \u{1F4F8}\n\nUm abra\u00E7o,\n\u2014 Realiza Festa`
     }
 
     return ''
