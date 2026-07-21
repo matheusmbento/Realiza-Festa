@@ -93,7 +93,12 @@ export default function DetalheEvento() {
 
   async function apagarEvento() {
     if (!confirm('Apagar este evento? Essa ação não pode ser desfeita.')) return
-    await fetch(`/api/eventos/${id}`, { method: 'DELETE' })
+    const res = await fetch(`/api/eventos/${id}`, { method: 'DELETE' })
+    if (!res.ok) {
+      const errorData = await res.json()
+      toast.error(errorData.error || 'Falha ao remover evento')
+      return
+    }
     toast.success('Evento removido')
     router.push('/eventos')
   }

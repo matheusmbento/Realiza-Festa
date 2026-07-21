@@ -48,6 +48,7 @@ export async function DELETE(_: NextRequest, { params }: Params) {
   await supabase.from('alocacoes_evento').delete().eq('evento_id', params.id)
   await supabase.from('checklist_evento').delete().eq('evento_id', params.id)
   await supabase.from('lancamentos').delete().eq('evento_id', params.id)
+  await supabase.from('leads').delete().eq('evento_origem_id', params.id)
 
   const { error } = await supabase
     .from('eventos')
