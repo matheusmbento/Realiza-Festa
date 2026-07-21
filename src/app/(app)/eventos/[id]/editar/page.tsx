@@ -7,6 +7,7 @@ import { ArrowLeft, Plus, X } from 'lucide-react'
 import { Input, Select, Textarea, Button, Loading } from '@/components/ui'
 import { toast } from 'sonner'
 import { TIPO_EVENTO_LABELS, type Evento, type Cliente } from '@/types'
+import SelectCliente from '@/components/eventos/SelectCliente'
 
 export default function EditarEvento() {
   const { id } = useParams<{ id: string }>()
@@ -94,12 +95,16 @@ export default function EditarEvento() {
       <form onSubmit={salvar} className="space-y-4">
         <div className="rounded-2xl p-4 space-y-3" style={{ background: '#1A1A24', border: '1px solid #2A2A38' }}>
           <h2 className="text-sm font-semibold" style={{ color: '#FF6B9D' }}>Dados do evento</h2>
-          <Input label="Nome *" value={form.nome} onChange={e => campo('nome', e.target.value)} required />
-          <Select label="Cliente" value={form.cliente_id} onChange={e => campo('cliente_id', e.target.value)}>
-            <option value="">Sem cliente vinculado</option>
-            {clientes.map(c => <option key={c.id} value={c.id}>{c.nome}</option>)}
-          </Select>
-          <Select label="Tipo" value={form.tipo_evento} onChange={e => campo('tipo_evento', e.target.value)}>
+          <Input label="Nome do evento *" value={form.nome}
+            onChange={e => campo('nome', e.target.value)}
+            placeholder="Ex: Festa da Helena" required />
+
+          <SelectCliente 
+            value={form.cliente_id} 
+            onChange={val => campo('cliente_id', val)} 
+            clientes={clientes} 
+          />
+          <Select label="Tipo de evento" value={form.tipo_evento} onChange={e => campo('tipo_evento', e.target.value)}>
             {Object.entries(TIPO_EVENTO_LABELS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
           </Select>
         </div>

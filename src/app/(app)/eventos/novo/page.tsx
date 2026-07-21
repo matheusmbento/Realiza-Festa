@@ -7,6 +7,7 @@ import { Input, Select, Textarea, Button, Card, SectionHeader } from '@/componen
 import { toast } from 'sonner'
 import { TIPO_EVENTO_LABELS, type Cliente } from '@/types'
 import Link from 'next/link'
+import SelectCliente from '@/components/eventos/SelectCliente'
 
 export default function NovoEvento() {
   const router = useRouter()
@@ -106,13 +107,11 @@ export default function NovoEvento() {
               onChange={e => campo('nome', e.target.value)}
               placeholder="Ex: Festa da Helena" required />
 
-            <Select label="Cliente" value={form.cliente_id}
-              onChange={e => campo('cliente_id', e.target.value)}>
-              <option value="">Selecionar cliente...</option>
-              {clientes.map(c => (
-                <option key={c.id} value={c.id}>{c.nome}</option>
-              ))}
-            </Select>
+            <SelectCliente 
+              value={form.cliente_id} 
+              onChange={val => campo('cliente_id', val)} 
+              clientes={clientes} 
+            />
 
             <Select label="Tipo de evento" value={form.tipo_evento}
               onChange={e => campo('tipo_evento', e.target.value)}>
