@@ -17,6 +17,18 @@ import { toast } from 'sonner'
 import ModalPagamento from '@/components/eventos/ModalPagamento'
 import ModalDespesa from '@/components/eventos/ModalDespesa'
 
+interface ContatoEvento {
+  id: string
+  evento_id: string
+  cliente_id?: string
+  tipo: 'confirmacao' | 'pre_evento' | 'feedback' | 'pos_venda'
+  status: 'pendente' | 'enviado' | 'ignorado'
+  data_prevista: string
+  mensagem_gerada?: string
+  data_envio?: string
+  criado_em: string
+}
+
 export default function DetalheEvento() {
   const { id } = useParams<{ id: string }>()
   const router = useRouter()
@@ -26,11 +38,19 @@ export default function DetalheEvento() {
   const [modalDesp, setModalDesp] = useState(false)
   const [novoItem, setNovoItem] = useState('')
   const [adicionandoItem, setAdicionandoItem] = useState(false)
+  const [contatos, setContatos] = useState<ContatoEvento[]>([])
 
   const carregar = useCallback(async () => {
-    const res = await fetch(`/api/eventos/${id}`)
-    const data = await res.json()
+    const [eventoRes, contatosRes] = await Promise.all([
+      fetch(`/api/eventos/${id}`),
+      fetch(`/api/eventos/${id}/contatos`),
+    ])
+    const data = await eventoRes.json()
     setEvento(data)
+    
+    const contatosData = await contatosRes.json()
+    setContatos(Array.isArray(contatosData) ? contatosData : [])
+    
     setLoading(false)
   }, [id])
 
@@ -126,6 +146,104 @@ export default function DetalheEvento() {
   const despesas = evento.lancamentos?.filter((l: any) => l.tipo === 'saida' && !l.deleted_at) || []
   const totalDespesas = despesas.reduce((acc: number, d: any) => acc + Number(d.valor), 0)
   const lucroReal = evento.valor_total - totalDespesas
+
+  // Gera o texto de confirmação para WhatsApp
+  function gerarMensagemConfirmacao(): string {
+    if (!evento) return ''
+
+    const fmtData = (d: string) =>
+      new Date(d + 'T12:00').toLocaleDateString('pt-BR', {
+        weekday: 'long', day: 'numeric',
+        month: 'long', year: 'numeric',
+      })
+
+    const fmtMoeda = (v: number) =>
+      new Intl.NumberFormat('pt-BR', {
+        style: 'currency', currency: 'BRL',
+      }).format(v)
+
+    const cliente = (evento as any).cliente
+    const nomeCliente = cliente?.nome?.split(' ')[0] ?? 'cliente'
+    const saldo = evento.valor_total - evento.valor_sinal
+
+    const linhaLocal = [
+      evento.local_nome,
+      evento.local_endereco,
+    ].filter(Boolean).join(' — ')
+
+    const tipoEntregaLabel: Record<string, string> = {
+      leva_monta: 'Leva e monta',
+      leva_sem_monta: 'Leva sem montagem',
+      busca_cliente: 'Cliente busca',
+    }
+
+    const partes = [
+      `✅ *Confirmação de Evento — Realiza Festa*`,
+      ``,
+      `Olá, ${nomeCliente}! 🎉`,
+      `Segue o resumo da sua festa confirmada:`,
+      ``,
+      `📅 *Data:* ${fmtData(evento.data_evento)}`,
+      evento.hora_inicio
+        ? `🕒 *Horário:* ${evento.hora_inicio.slice(0,5)}${evento.hora_montagem ? ` (montagem a partir das ${evento.hora_montagem.slice(0,5)})` : ''}`
+        : null,
+      linhaLocal ? `📍 *Local:* ${linhaLocal}` : null,
+      evento.tema ? `🎨 *Tema:* ${evento.tema}` : null,
+      evento.cores?.length
+        ? `🎀 *Cores:* ${evento.cores.join(', ')}`
+        : null,
+      `🚚 *Entrega:* ${tipoEntregaLabel[evento.tipo_entrega] ?? evento.tipo_entrega}`,
+      ``,
+      `💰 *Valor total:* ${fmtMoeda(evento.valor_total)}`,
+      evento.sinal_recebido
+        ? `✅ *Sinal pago:* ${fmtMoeda(evento.valor_sinal)}${evento.data_sinal ? ` (${new Date(evento.data_sinal + 'T12:00').toLocaleDateString('pt-BR')})` : ''}`
+        : `⏳ *Sinal:* ${fmtMoeda(evento.valor_sinal)} (aguardando)`,
+      saldo > 0
+        ? `⏳ *Restante:* ${fmtMoeda(saldo)} (a pagar no dia)`
+        : `✅ *Pagamento:* Quitado`,
+      ``,
+      `Qualquer dúvida, pode chamar! 💕`,
+      `— Realiza Festa`,
+    ].filter((l): l is string => l !== null)
+
+    return partes.join('\n')
+  }
+
+  // Abre WhatsApp com mensagem pré-preenchida
+  function abrirWhatsApp(telefone?: string, mensagem?: string) {
+    const tel = telefone?.replace(/\D/g, '') ?? ''
+    const msg = encodeURIComponent(mensagem ?? gerarMensagemConfirmacao())
+    const url = tel
+      ? `https://wa.me/55${tel}?text=${msg}`
+      : `https://wa.me/?text=${msg}`
+    window.open(url, '_blank')
+  }
+
+  // Label e emoji por tipo de contato
+  const CONTATO_CONFIG = {
+    confirmacao: { label: 'Confirmação',      emoji: '✅', cor: '#4ADE80' },
+    pre_evento:  { label: 'Lembrete 3 dias',  emoji: '🔔', cor: '#FFB400' },
+    feedback:    { label: 'Feedback pós-festa',emoji: '💬', cor: '#7C3AED' },
+    pos_venda:   { label: 'Pós-venda',        emoji: '🌟', cor: '#FF6B9D' },
+  } as const
+
+  async function marcarEnviado(contato: ContatoEvento) {
+    await fetch(`/api/eventos/${id}/contatos`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id: contato.id, status: 'enviado' }),
+    })
+    carregar()
+  }
+
+  async function ignorarContato(contato: ContatoEvento) {
+    await fetch(`/api/eventos/${id}/contatos`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id: contato.id, status: 'ignorado' }),
+    })
+    carregar()
+  }
 
   return (
     <div className="space-y-4 fade-in pb-10">
@@ -532,6 +650,149 @@ export default function DetalheEvento() {
           </button>
         </div>
       </Card>
+
+      {/* ── Resumo de confirmação ── */}
+      <div
+        className="rounded-2xl p-4"
+        style={{ background: '#1A1A24', border: '1px solid #2A2A38' }}
+      >
+        <div className="flex items-center justify-between mb-3">
+          <h2 className="text-sm font-semibold" style={{ color: '#E8E8F0' }}>
+            📋 Resumo para cliente
+          </h2>
+          <button
+            onClick={() => {
+              const cliente = (evento as any).cliente
+              abrirWhatsApp(cliente?.telefone, gerarMensagemConfirmacao())
+            }}
+            className="flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-semibold transition-all"
+            style={{
+              background: '#25D36622',
+              color: '#25D366',
+              border: '1px solid #25D36644',
+            }}
+          >
+            <span>📲</span> Enviar por WhatsApp
+          </button>
+        </div>
+
+        {/* Preview da mensagem */}
+        <pre
+          className="text-xs leading-relaxed whitespace-pre-wrap rounded-xl p-3 select-all"
+          style={{
+            background: '#0F0F14',
+            color: '#8888AA',
+            border: '1px solid #2A2A38',
+            fontFamily: 'inherit',
+            maxHeight: '200px',
+            overflowY: 'auto',
+          }}
+        >
+          {gerarMensagemConfirmacao()}
+        </pre>
+
+        <p
+          className="text-xs mt-2 text-center"
+          style={{ color: '#3A3A50' }}
+        >
+          Toque no texto acima para selecionar e copiar
+        </p>
+      </div>
+
+      {/* ── Contatos do cliente ── */}
+      {contatos.length > 0 && (
+        <div
+          className="rounded-2xl p-4"
+          style={{ background: '#1A1A24', border: '1px solid #2A2A38' }}
+        >
+          <h2 className="text-sm font-semibold mb-3" style={{ color: '#E8E8F0' }}>
+            📞 Contatos com a cliente
+          </h2>
+
+          <div className="space-y-2">
+            {contatos.map(contato => {
+              const cfg = CONTATO_CONFIG[contato.tipo]
+              const vencido =
+                contato.status === 'pendente' &&
+                contato.data_prevista < new Date().toISOString().split('T')[0]
+              const cliente = (evento as any).cliente
+
+              return (
+                <div
+                  key={contato.id}
+                  className="flex items-center gap-3 py-2.5 px-3 rounded-xl"
+                  style={{
+                    background: vencido ? '#F8717118' : '#0F0F14',
+                    border: `1px solid ${
+                      vencido
+                        ? '#F8717144'
+                        : contato.status === 'enviado'
+                        ? '#4ADE8033'
+                        : '#2A2A38'
+                    }`,
+                  }}
+                >
+                  <span className="text-lg flex-shrink-0">{cfg.emoji}</span>
+
+                  <div className="flex-1 min-w-0">
+                    <p
+                      className="text-sm font-medium"
+                      style={{ color: '#E8E8F0' }}
+                    >
+                      {cfg.label}
+                    </p>
+                    <p className="text-xs" style={{ color: vencido ? '#F87171' : '#8888AA' }}>
+                      {vencido ? '⚠️ Vencido — ' : ''}
+                      {new Date(contato.data_prevista + 'T12:00')
+                        .toLocaleDateString('pt-BR', {
+                          day: 'numeric', month: 'short', year: 'numeric',
+                        })}
+                      {contato.data_envio &&
+                        ` • Enviado em ${new Date(contato.data_envio)
+                          .toLocaleDateString('pt-BR')}`}
+                    </p>
+                  </div>
+
+                  {contato.status === 'enviado' ? (
+                    <span className="text-xs font-medium" style={{ color: '#4ADE80' }}>
+                      ✓ Enviado
+                    </span>
+                  ) : contato.status === 'ignorado' ? (
+                    <span className="text-xs" style={{ color: '#3A3A50' }}>
+                      Ignorado
+                    </span>
+                  ) : (
+                    <div className="flex items-center gap-1.5 flex-shrink-0">
+                      <button
+                        onClick={() => abrirWhatsApp(cliente?.telefone)}
+                        className="p-1.5 rounded-lg text-sm"
+                        style={{ background: '#25D36622', color: '#25D366' }}
+                        title="Abrir WhatsApp"
+                      >
+                        📲
+                      </button>
+                      <button
+                        onClick={() => marcarEnviado(contato)}
+                        className="text-xs px-2 py-1 rounded-lg font-medium"
+                        style={{ background: '#4ADE8022', color: '#4ADE80' }}
+                      >
+                        ✓
+                      </button>
+                      <button
+                        onClick={() => ignorarContato(contato)}
+                        className="text-xs px-2 py-1 rounded-lg"
+                        style={{ background: '#2A2A38', color: '#8888AA' }}
+                      >
+                        ✕
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )
+            })}
+          </div>
+        </div>
+      )}
 
       {/* Ações */}
       <div className="flex gap-2 pt-2">
