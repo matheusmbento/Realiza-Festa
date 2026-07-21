@@ -68,12 +68,8 @@ export type TipoEvento =
   | 'corporativo'
   | 'outro'
 
-export type StatusEvento =
-  | 'orcamento'
+export type StatusEvento = 
   | 'confirmado'
-  | 'sinal_recebido'
-  | 'preparacao'
-  | 'montagem'
   | 'concluido'
   | 'cancelado'
 
@@ -207,21 +203,13 @@ export interface ApiResponse<T> {
 }
 
 export const STATUS_LABELS: Record<StatusEvento, string> = {
-  orcamento:      'Orçamento',
   confirmado:     'Confirmado',
-  sinal_recebido: 'Sinal Recebido',
-  preparacao:     'Preparação',
-  montagem:       'Montagem',
   concluido:      'Concluído',
   cancelado:      'Cancelado',
 }
 
 export const STATUS_CORES: Record<StatusEvento, string> = {
-  orcamento:      '#8888AA',
   confirmado:     '#FFB400',
-  sinal_recebido: '#4ADE80',
-  preparacao:     '#FF6B9D',
-  montagem:       '#7C3AED',
   concluido:      '#4ADE80',
   cancelado:      '#F87171',
 }

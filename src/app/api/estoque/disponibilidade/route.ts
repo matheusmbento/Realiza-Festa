@@ -2,7 +2,7 @@ import { createServerSupabase } from '@/lib/supabase/server'
 import { NextRequest, NextResponse } from 'next/server'
 
 // Status que realmente comprometem o estoque (orçamento e cancelado ignorados)
-const STATUS_QUE_BLOQUEIAM = ['confirmado', 'sinal_recebido', 'preparacao', 'montagem', 'concluido']
+const STATUS_QUE_BLOQUEIAM = ['confirmado', 'concluido']
 
 export async function GET(req: NextRequest) {
   const supabase = createServerSupabase()

@@ -68,7 +68,7 @@ export default function NovoEvento() {
         valor_total: val_tot,
         valor_sinal: parseFloat(form.valor_sinal.replace(',', '.')) || 0,
         cores,
-        status: 'orcamento',
+        status: 'confirmado',
         cliente_id: form.cliente_id || null,
       }
 

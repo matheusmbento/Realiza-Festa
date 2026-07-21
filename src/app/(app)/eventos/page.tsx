@@ -8,12 +8,10 @@ import { formatarMoeda, labelData, diasParaEvento } from '@/lib/utils'
 import { STATUS_CORES, STATUS_LABELS, TIPO_EVENTO_LABELS, type Evento, type StatusEvento } from '@/types'
 
 const FILTROS: { label: string; valor: string }[] = [
-  { label: 'Todos',     valor: '' },
-  { label: 'Orçamento', valor: 'orcamento' },
-  { label: 'Confirmado',valor: 'confirmado' },
-  { label: 'Sinal ✓',  valor: 'sinal_recebido' },
-  { label: 'Prep.',     valor: 'preparacao' },
-  { label: 'Concluído', valor: 'concluido' },
+  { label: 'Todos',       valor: '' },
+  { label: 'Confirmados', valor: 'confirmado' },
+  { label: 'Concluídos',  valor: 'concluido' },
+  { label: 'Cancelados',  valor: 'cancelado' },
 ]
 
 export default function EventosPage() {
@@ -22,7 +20,7 @@ export default function EventosPage() {
   const [loadingMore, setLoadingMore] = useState(false)
   const [hasMore, setHasMore] = useState(true)
   const [busca, setBusca] = useState('')
-  const [filtroStatus, setFiltroStatus] = useState('')
+  const [filtroStatus, setFiltroStatus] = useState('confirmado')
 
   const carregarInicial = useCallback(async () => {
     setLoading(true)

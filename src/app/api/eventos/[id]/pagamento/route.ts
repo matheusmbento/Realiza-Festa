@@ -51,7 +51,6 @@ export async function POST(req: NextRequest, { params }: Params) {
         sinal_recebido: true,
         data_sinal: data || dataHoje,
         forma_pagamento: forma || evento.forma_pagamento,
-        status: 'sinal_recebido',
       })
       .eq('id', params.id)
       .select('*')
