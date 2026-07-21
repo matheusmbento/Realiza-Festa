@@ -203,6 +203,7 @@ export default function DetalheEvento() {
         : `✅ *Pagamento:* Quitado`,
       ``,
       `Qualquer dúvida, pode chamar! 💕`,
+      `Acompanhe as novidades no nosso Instagram: @realizafesta1 📸`,
       `— Realiza Festa`,
     ].filter((l): l is string => l !== null)
 
@@ -217,15 +218,15 @@ export default function DetalheEvento() {
     if (tipo === 'confirmacao') return gerarMensagemConfirmacao()
 
     if (tipo === 'pre_evento') {
-      return `Olá, ${nomeCliente}! 🎉\n\nPassando aqui para lembrar que faltam poucos dias para a nossa festa! Está tudo preparadinho por aqui.\n\nSe tiver alguma dúvida de última hora ou precisar ajustar algum detalhe, é só me chamar! 💕\n\n— Realiza Festa`
+      return `Olá, ${nomeCliente}! 🎉\n\nPassando aqui para lembrar que faltam poucos dias para a nossa festa! Está tudo preparadinho por aqui.\n\nSe tiver alguma dúvida de última hora ou precisar ajustar algum detalhe, é só me chamar! 💕\n\nAproveite e acompanhe nossas montagens no Instagram @realizafesta1 📸\n\n— Realiza Festa`
     }
 
     if (tipo === 'feedback') {
-      return `Olá, ${nomeCliente}! Tudo bem? 🌟\n\nPassando para agradecer mais uma vez a confiança no nosso trabalho! Como foi a festa? Deu tudo certo com os nossos itens? \n\nNosso maior objetivo é sempre garantir a alegria da festa, então adoraríamos saber o que você achou!\n\nUm abraço,\n— Realiza Festa`
+      return `Olá, ${nomeCliente}! Tudo bem? 🌟\n\nPassando para agradecer mais uma vez a confiança no nosso trabalho! Como foi a festa? Deu tudo certo com os nossos itens? \n\nNosso maior objetivo é sempre garantir a alegria da festa, então adoraríamos saber o que você achou!\n\nAh, e se tiver alguma foto linda da decoração, não esqueça de nos marcar no Instagram @realizafesta1 📸 Vamos adorar ver e repostar!\n\nUm abraço,\n— Realiza Festa`
     }
 
     if (tipo === 'pos_venda') {
-      return `Olá, ${nomeCliente}! Tudo bem? 🎂\n\nLogo logo vai fazer 1 ano daquela festa linda que fizemos juntos! Como o tempo voa, né?\n\nPassando só pra avisar que estamos com várias novidades incríveis para o próximo evento. Se já estiver planejando algo, me dá um toque pra já garantirmos a sua data!\n\nUm abraço,\n— Realiza Festa`
+      return `Olá, ${nomeCliente}! Tudo bem? 🎂\n\nLogo logo vai fazer 1 ano daquela festa linda que fizemos juntos! Como o tempo voa, né?\n\nPassando só pra avisar que estamos com várias novidades incríveis para o próximo evento. Se já estiver planejando algo, me dá um toque pra já garantirmos a sua data!\n\nVocê pode espiar as decorações novas lá no nosso Instagram @realizafesta1 📸\n\nUm abraço,\n— Realiza Festa`
     }
 
     return ''
