@@ -25,24 +25,14 @@ export default function GraficoMensal({ dados }: Props) {
   const padB = 30
   const areaW = W - padL - padR
   const areaH = H - padT - padB
-
-  function x(i: number) {
-    return padL + (i / (dados.length - 1 || 1)) * areaW
-  }
+  const yZero = padT + areaH
 
   function y(val: number) {
-    return padT + areaH - (val / maxValor) * areaH
+    return yZero - (Math.max(0, val) / maxValor) * areaH
   }
 
-  function gerarPath(valores: number[]) {
-    return valores
-      .map((v, i) => `${i === 0 ? 'M' : 'L'} ${x(i)} ${y(v)}`)
-      .join(' ')
-  }
-
-  function gerarArea(valores: number[]) {
-    const linha = valores.map((v, i) => `${i === 0 ? 'M' : 'L'} ${x(i)} ${y(v)}`).join(' ')
-    return `${linha} L ${x(valores.length - 1)} ${y(0)} L ${x(0)} ${y(0)} Z`
+  function h(val: number) {
+    return (Math.max(0, val) / maxValor) * areaH
   }
 
   // Linhas de grade (4 níveis)
@@ -102,30 +92,29 @@ export default function GraficoMensal({ dados }: Props) {
           </g>
         ))}
 
-        {/* Área preenchida da receita */}
-        <path d={receitaArea} fill="#4ADE8012" />
+        {/* Barras */}
+        {dados.map((d, i) => {
+          const groupWidth = areaW / dados.length
+          const cx = padL + groupWidth * i + groupWidth / 2
+          const barW = 8
+          const gap = 2
 
-        {/* Linhas */}
-        <path d={receitaPath} fill="none" stroke="#4ADE80" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round" />
-        <path d={custosPath} fill="none" stroke="#F87171" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" strokeDasharray="6 3" />
-        <path d={lucroPath} fill="none" stroke="#7C3AED" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+          return (
+            <g key={`bar-${i}`}>
+              {/* Receita */}
+              <rect x={cx - barW * 1.5 - gap} y={y(d.receita)} width={barW} height={h(d.receita)} fill="#4ADE80" rx={2} />
+              {/* Custos */}
+              <rect x={cx - barW * 0.5} y={y(d.custos)} width={barW} height={h(d.custos)} fill="#F87171" rx={2} />
+              {/* Lucro */}
+              <rect x={cx + barW * 0.5 + gap} y={y(d.lucro)} width={barW} height={h(d.lucro)} fill="#7C3AED" rx={2} />
 
-        {/* Pontos da receita */}
-        {dados.map((d, i) => (
-          <g key={`pts-${i}`}>
-            <circle cx={x(i)} cy={y(d.receita)} r={4} fill="#4ADE80" stroke="#1A1A24" strokeWidth={2} />
-            <circle cx={x(i)} cy={y(d.custos)} r={3} fill="#F87171" stroke="#1A1A24" strokeWidth={1.5} />
-            <circle cx={x(i)} cy={y(d.lucro < 0 ? 0 : d.lucro)} r={3} fill="#7C3AED" stroke="#1A1A24" strokeWidth={1.5} />
-          </g>
-        ))}
-
-        {/* Labels dos meses */}
-        {dados.map((d, i) => (
-          <text key={`lbl-${i}`} x={x(i)} y={H - 5} textAnchor="middle"
-                fill="#8888AA" fontSize={10} fontFamily="system-ui">
-            {d.label}
-          </text>
-        ))}
+              {/* Label do mês */}
+              <text x={cx} y={H - 5} textAnchor="middle" fill="#8888AA" fontSize={10} fontFamily="system-ui">
+                {d.label}
+              </text>
+            </g>
+          )
+        })}
       </svg>
 
       {/* Resumo do mês mais recente */}

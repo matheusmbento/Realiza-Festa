@@ -212,32 +212,32 @@ export default async function Dashboard() {
       {/* Stats financeiros — Linha 1: com comparação */}
       <div className="grid grid-cols-2 gap-3">
         <StatCard 
-          icone="\uD83D\uDCB0" 
-          label="Receita do m\u00EAs" 
+          icone="💰" 
+          label="Receita do mês" 
           valor={formatarMoeda(receita)} 
           cor="#4ADE80" 
           sub={deltaReceita?.texto}
           subCor={deltaReceita ? (deltaReceita.positivo ? '#4ADE80' : '#F87171') : undefined}
         />
         <StatCard 
-          icone="\uD83D\uDC8E" 
-          label="Lucro l\u00EDquido" 
+          icone="💎" 
+          label="Lucro líquido" 
           valor={formatarMoeda(lucro)} 
           cor={lucro >= 0 ? '#4ADE80' : '#F87171'}
           sub={deltaLucro?.texto}
           subCor={deltaLucro ? (deltaLucro.positivo ? '#4ADE80' : '#F87171') : undefined}
         />
         <StatCard 
-          icone="\uD83C\uDFAF" 
-          label="Ticket M\u00E9dio" 
+          icone="🎯" 
+          label="Ticket Médio" 
           valor={formatarMoeda(ticketMedio)} 
           cor="#FF6B9D" 
           sub={deltaTicket?.texto}
           subCor={deltaTicket ? (deltaTicket.positivo ? '#4ADE80' : '#F87171') : undefined}
         />
         <StatCard 
-          icone="\uD83C\uDF89" 
-          label="Eventos do m\u00EAs" 
+          icone="🎉" 
+          label="Eventos do mês" 
           valor={String(nEventos)} 
           cor="#7C3AED"
           sub={deltaEventos?.texto}
@@ -248,15 +248,15 @@ export default async function Dashboard() {
       {/* Stats secundários — Linha 2: sem comparação */}
       <div className="grid grid-cols-2 gap-3">
         <StatCard 
-          icone="\u23F3" 
+          icone="⏳" 
           label="A receber" 
           valor={formatarMoeda(totalAReceber)} 
           cor="#FFB400" 
-          sub={totalAReceber === 0 ? 'Tudo quitado \u2705' : undefined}
+          sub={totalAReceber === 0 ? 'Tudo quitado ✅' : undefined}
           subCor={totalAReceber === 0 ? '#4ADE80' : undefined}
         />
         <StatCard 
-          icone="\u2728" 
+          icone="✨" 
           label="Leads abertos" 
           valor={String(leadsAbertos ?? 0)} 
           cor="#7C3AED"
