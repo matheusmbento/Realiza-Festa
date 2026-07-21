@@ -224,7 +224,7 @@ export default function AdicionarItensEvento() {
         })}
       </div>
 
-      <div className="fixed bottom-0 inset-x-0 p-4 pb-safe" style={{ background: '#0F0F14', borderTop: '1px solid #2A2A38' }}>
+      <div className="fixed bottom-20 lg:bottom-0 inset-x-0 p-4 pb-safe z-40" style={{ background: '#0F0F14', borderTop: '1px solid #2A2A38' }}>
         <Button className="w-full" tamanho="lg" loading={salvando} onClick={salvar}>
           <Check size={18} />
           Salvar {totalSelecionados} item{totalSelecionados !== 1 ? 's' : ''}
