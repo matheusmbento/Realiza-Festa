@@ -5,6 +5,7 @@ import { STATUS_CORES, STATUS_LABELS, TIPO_EVENTO_LABELS } from '@/types'
 import Link from 'next/link'
 import { ArrowRight, AlertCircle } from 'lucide-react'
 import TarefasPendentes from '@/components/dashboard/TarefasPendentes'
+import GraficoMensal from '@/components/dashboard/GraficoMensal'
 
 export const dynamic = 'force-dynamic'
 
@@ -40,6 +41,7 @@ export default async function Dashboard() {
 
   const receita = lancamentos?.filter(l => l.tipo === 'entrada').reduce((s, l) => s + l.valor, 0) ?? 0
   const custos  = lancamentos?.filter(l => l.tipo === 'saida').reduce((s, l) => s + l.valor, 0) ?? 0
+  const lucro = receita - custos
 
   const { data: lancamentosMesPassado } = await supabase
     .from('lancamentos')
@@ -49,16 +51,62 @@ export default async function Dashboard() {
 
   const receitaMesPassado = lancamentosMesPassado?.filter(l => l.tipo === 'entrada').reduce((s, l) => s + l.valor, 0) ?? 0
   const custosMesPassado  = lancamentosMesPassado?.filter(l => l.tipo === 'saida').reduce((s, l) => s + l.valor, 0) ?? 0
+  const lucroMesPassado = receitaMesPassado - custosMesPassado
+
+  // Eventos do mês atual e anterior (contagem)
+  const { count: eventosMesAtual } = await supabase
+    .from('eventos')
+    .select('*', { count: 'exact', head: true })
+    .gte('data_evento', inicioMes)
+    .lte('data_evento', fimMes)
+    .neq('status', 'cancelado')
+
+  const { count: eventosMesPassadoCount } = await supabase
+    .from('eventos')
+    .select('*', { count: 'exact', head: true })
+    .gte('data_evento', inicioMesPassado)
+    .lte('data_evento', fimMesPassado)
+    .neq('status', 'cancelado')
+
+  const nEventos = eventosMesAtual ?? 0
+  const nEventosPassado = eventosMesPassadoCount ?? 0
+  const ticketMedio = nEventos > 0 ? receita / nEventos : 0
+  const ticketMedioPassado = nEventosPassado > 0 ? receitaMesPassado / nEventosPassado : 0
 
   function calcDelta(atual: number, anterior: number): { texto: string; positivo: boolean } | null {
-    if (anterior === 0) return null
+    if (anterior === 0 && atual === 0) return null
+    if (anterior === 0) return { texto: '\u2191 novo', positivo: true }
     const pct = Math.round(((atual - anterior) / anterior) * 100)
     const positivo = pct >= 0
-    return { texto: `${positivo ? '↑' : '↓'} ${Math.abs(pct)}% vs mês anterior`, positivo }
+    return { texto: `${positivo ? '\u2191' : '\u2193'} ${Math.abs(pct)}% vs m\u00EAs ant.`, positivo }
   }
 
   const deltaReceita = calcDelta(receita, receitaMesPassado)
-  const deltaCustos = calcDelta(custos, custosMesPassado)
+  const deltaLucro = calcDelta(lucro, lucroMesPassado)
+  const deltaTicket = calcDelta(ticketMedio, ticketMedioPassado)
+  const deltaEventos = calcDelta(nEventos, nEventosPassado)
+
+  // Dados para gráfico de 6 meses
+  const MESES_LABEL = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez']
+  const dadosGrafico: { label: string; receita: number; custos: number; lucro: number }[] = []
+
+  // Buscar últimos 6 meses de lançamentos de uma vez
+  const inicio6m = new Date(dataHoje.getFullYear(), dataHoje.getMonth() - 5, 1).toISOString().split('T')[0]
+  const { data: lancamentos6m } = await supabase
+    .from('lancamentos')
+    .select('tipo, valor, data')
+    .gte('data', inicio6m)
+    .lte('data', fimMes)
+
+  for (let i = 5; i >= 0; i--) {
+    const d = new Date(dataHoje.getFullYear(), dataHoje.getMonth() - i, 1)
+    const mIni = d.toISOString().split('T')[0]
+    const mFim = new Date(d.getFullYear(), d.getMonth() + 1, 0).toISOString().split('T')[0]
+    const doMes = lancamentos6m?.filter(l => l.data >= mIni && l.data <= mFim) ?? []
+    const r = doMes.filter(l => l.tipo === 'entrada').reduce((s, l) => s + l.valor, 0)
+    const c = doMes.filter(l => l.tipo === 'saida').reduce((s, l) => s + l.valor, 0)
+    dadosGrafico.push({ label: MESES_LABEL[d.getMonth()], receita: r, custos: c, lucro: r - c })
+  }
 
   // A receber (eventos com saldo)
   const { data: aReceber } = await supabase
@@ -161,40 +209,63 @@ export default async function Dashboard() {
       {/* Avisos Importantes (Tarefas Pendentes) */}
       <TarefasPendentes avisosIniciais={avisos || []} />
 
-      {/* Stats financeiros */}
+      {/* Stats financeiros — Linha 1: com comparação */}
       <div className="grid grid-cols-2 gap-3">
         <StatCard 
-          icone="💰" 
-          label="Receita do mês" 
+          icone="\uD83D\uDCB0" 
+          label="Receita do m\u00EAs" 
           valor={formatarMoeda(receita)} 
           cor="#4ADE80" 
           sub={deltaReceita?.texto}
           subCor={deltaReceita ? (deltaReceita.positivo ? '#4ADE80' : '#F87171') : undefined}
         />
         <StatCard 
-          icone="⏳" 
+          icone="\uD83D\uDC8E" 
+          label="Lucro l\u00EDquido" 
+          valor={formatarMoeda(lucro)} 
+          cor={lucro >= 0 ? '#4ADE80' : '#F87171'}
+          sub={deltaLucro?.texto}
+          subCor={deltaLucro ? (deltaLucro.positivo ? '#4ADE80' : '#F87171') : undefined}
+        />
+        <StatCard 
+          icone="\uD83C\uDFAF" 
+          label="Ticket M\u00E9dio" 
+          valor={formatarMoeda(ticketMedio)} 
+          cor="#FF6B9D" 
+          sub={deltaTicket?.texto}
+          subCor={deltaTicket ? (deltaTicket.positivo ? '#4ADE80' : '#F87171') : undefined}
+        />
+        <StatCard 
+          icone="\uD83C\uDF89" 
+          label="Eventos do m\u00EAs" 
+          valor={String(nEventos)} 
+          cor="#7C3AED"
+          sub={deltaEventos?.texto}
+          subCor={deltaEventos ? (deltaEventos.positivo ? '#4ADE80' : '#F87171') : undefined}
+        />
+      </div>
+
+      {/* Stats secundários — Linha 2: sem comparação */}
+      <div className="grid grid-cols-2 gap-3">
+        <StatCard 
+          icone="\u23F3" 
           label="A receber" 
           valor={formatarMoeda(totalAReceber)} 
           cor="#FFB400" 
-          sub={totalAReceber === 0 ? 'Tudo quitado ✅' : undefined}
+          sub={totalAReceber === 0 ? 'Tudo quitado \u2705' : undefined}
           subCor={totalAReceber === 0 ? '#4ADE80' : undefined}
         />
         <StatCard 
-          icone="📉" 
-          label="Custos do mês" 
-          valor={formatarMoeda(custos)} 
-          cor="#F87171" 
-          sub={deltaCustos?.texto}
-          subCor={deltaCustos ? (deltaCustos.positivo ? '#F87171' : '#4ADE80') : undefined}
-        />
-        <StatCard 
-          icone="✨" 
+          icone="\u2728" 
           label="Leads abertos" 
           valor={String(leadsAbertos ?? 0)} 
           cor="#7C3AED"
           sub="oportunidades" 
         />
       </div>
+
+      {/* Gráfico de 6 meses */}
+      <GraficoMensal dados={dadosGrafico} />
 
       {/* Próximos eventos */}
       <div>
