@@ -5,6 +5,7 @@ import { Plus, Search, Package } from 'lucide-react'
 import { Card, Badge, Button, EmptyState, Loading, SectionHeader } from '@/components/ui'
 import type { ItemEstoque, CategoriaEstoque } from '@/types'
 import ModalItemEstoque from '@/components/estoque/ModalItemEstoque'
+import ModalCategoria from '@/components/estoque/ModalCategoria'
 
 export default function EstoquePage() {
   const [itens, setItens] = useState<ItemEstoque[]>([])
@@ -13,6 +14,7 @@ export default function EstoquePage() {
   const [busca, setBusca] = useState('')
   const [categoriaFiltro, setCategoriaFiltro] = useState('')
   const [modal, setModal] = useState<ItemEstoque | null | 'novo'>(null)
+  const [modalCategoria, setModalCategoria] = useState(false)
 
   const carregar = useCallback(async () => {
     setLoading(true)
@@ -76,6 +78,12 @@ export default function EstoquePage() {
             {cat.nome}
           </button>
         ))}
+        {/* Botão sutil Nova Categoria */}
+        <button onClick={() => setModalCategoria(true)}
+          className="flex-shrink-0 px-3 py-1.5 rounded-full text-xs font-medium transition-all hover:brightness-110"
+          style={{ background: '#1A1A24', color: '#4ADE80', border: '1px solid #4ADE8044', boxShadow: '0 0 10px #4ADE8022' }}>
+          + Categoria
+        </button>
       </div>
 
       {loading ? <Loading /> : itens.length === 0 ? (
@@ -129,6 +137,13 @@ export default function EstoquePage() {
           categorias={categorias}
           onClose={() => setModal(null)}
           onSuccess={() => { setModal(null); carregar() }}
+        />
+      )}
+
+      {modalCategoria && (
+        <ModalCategoria
+          onClose={() => setModalCategoria(false)}
+          onSuccess={() => { setModalCategoria(false); carregar() }}
         />
       )}
     </div>
