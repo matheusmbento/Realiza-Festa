@@ -16,6 +16,7 @@ export async function GET(req: NextRequest) {
   const { data: lancamentos } = await supabase
     .from('lancamentos')
     .select('tipo, valor, categoria, data, evento:eventos(valor_total, valor_decoracao, valor_brinquedos, valor_frete)')
+    .is('deleted_at', null)
     .gte('data', inicio)
     .lte('data', fim)
 
@@ -75,6 +76,7 @@ export async function GET(req: NextRequest) {
     const { data: l } = await supabase
       .from('lancamentos')
       .select('tipo, valor')
+      .is('deleted_at', null)
       .gte('data', mInicio)
       .lte('data', mFim)
 

@@ -17,7 +17,7 @@ export async function GET(_: NextRequest, { params }: Params) {
           categoria:categorias_estoque(id, nome, cor, icone))
       ),
       checklist:checklist_evento(id, descricao, concluido, prazo),
-      lancamentos:lancamentos(id, tipo, valor, descricao, data, categoria)
+      lancamentos:lancamentos(id, tipo, valor, descricao, data, categoria, deleted_at)
     `)
     .eq('id', params.id)
     .single()

@@ -11,6 +11,7 @@ export async function GET(req: NextRequest) {
   let query = supabase
     .from('lancamentos')
     .select('*, evento:eventos(id, nome)')
+    .is('deleted_at', null)
     .order('data', { ascending: false })
 
   if (inicio) query = query.gte('data', inicio)

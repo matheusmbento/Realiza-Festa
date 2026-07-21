@@ -7,6 +7,7 @@ import { formatarMoeda, formatarData } from '@/lib/utils'
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend } from 'recharts'
 import type { Lancamento } from '@/types'
 import ModalLancamento from '@/components/financeiro/ModalLancamento'
+import { Trash2, Lock } from 'lucide-react'
 
 interface Dashboard {
   receita: number; custos: number; lucro: number; a_receber: number
@@ -43,6 +44,18 @@ export default function FinanceiroPage() {
   }, [])
 
   useEffect(() => { carregar() }, [carregar])
+
+  async function excluirLancamento(id: string) {
+    if (!confirm('Deseja excluir este lançamento?')) return
+    const res = await fetch(`/api/financeiro/${id}`, { method: 'DELETE' })
+    if (res.ok) {
+      toast.success('Lançamento excluído')
+      carregar()
+    } else {
+      const data = await res.json()
+      toast.error(data.error || 'Erro ao excluir')
+    }
+  }
 
   if (loading) return <Loading />
 
@@ -140,7 +153,7 @@ export default function FinanceiroPage() {
               acao={<Button onClick={() => setModal(true)}><Plus size={14} /> Novo lançamento</Button>} />
           ) : lancamentos.map(lanc => (
             <Card key={lanc.id}>
-              <div className="flex items-center justify-between gap-3">
+              <div className="flex items-center justify-between gap-3 group">
                 <div className="flex items-center gap-3">
                   <span className="text-xl">{lanc.tipo === 'entrada' ? '💚' : '🔴'}</span>
                   <div>
@@ -151,10 +164,25 @@ export default function FinanceiroPage() {
                     </div>
                   </div>
                 </div>
-                <p className="text-base font-bold flex-shrink-0"
-                   style={{ color: lanc.tipo === 'entrada' ? '#4ADE80' : '#F87171' }}>
-                  {lanc.tipo === 'entrada' ? '+' : '-'}{formatarMoeda(lanc.valor)}
-                </p>
+                <div className="flex items-center gap-3">
+                  <p className="text-base font-bold flex-shrink-0"
+                     style={{ color: lanc.tipo === 'entrada' ? '#4ADE80' : '#F87171' }}>
+                    {lanc.tipo === 'entrada' ? '+' : '-'}{formatarMoeda(lanc.valor)}
+                  </p>
+                  
+                  {/* Botões de controle */}
+                  <div className="flex-shrink-0 ml-2">
+                    {(lanc as any).evento ? (
+                      <div className="p-2" title="Gerado por evento. Vá até o evento para excluir.">
+                        <Lock size={16} style={{ color: '#3A3A50' }} />
+                      </div>
+                    ) : (
+                      <button onClick={() => excluirLancamento(lanc.id)} className="p-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <Trash2 size={16} style={{ color: '#F87171' }} />
+                      </button>
+                    )}
+                  </div>
+                </div>
               </div>
             </Card>
           ))}

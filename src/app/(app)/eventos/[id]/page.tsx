@@ -85,6 +85,12 @@ export default function DetalheEvento() {
     carregar()
   }
 
+  async function removerDespesa(idDespesa: string) {
+    if (!confirm('Apagar esta despesa?')) return
+    await fetch(`/api/financeiro/${idDespesa}?force=true`, { method: 'DELETE' })
+    carregar()
+  }
+
   async function apagarEvento() {
     if (!confirm('Apagar este evento? Essa ação não pode ser desfeita.')) return
     await fetch(`/api/eventos/${id}`, { method: 'DELETE' })
@@ -103,7 +109,7 @@ export default function DetalheEvento() {
   const saldo = evento.valor_total - evento.valor_sinal
   
   // Financeiro
-  const despesas = evento.lancamentos?.filter((l: any) => l.tipo === 'saida') || []
+  const despesas = evento.lancamentos?.filter((l: any) => l.tipo === 'saida' && !l.deleted_at) || []
   const totalDespesas = despesas.reduce((acc: number, d: any) => acc + Number(d.valor), 0)
   const lucroReal = evento.valor_total - totalDespesas
 
@@ -392,7 +398,7 @@ export default function DetalheEvento() {
         ) : (
           <div className="space-y-2">
             {despesas.map((despesa: any) => (
-              <div key={despesa.id} className="flex items-center justify-between py-2 border-b last:border-0" style={{ borderColor: '#2A2A38' }}>
+              <div key={despesa.id} className="flex items-center justify-between py-2 border-b last:border-0 group" style={{ borderColor: '#2A2A38' }}>
                 <div className="flex items-center gap-2.5">
                   <div className="w-8 h-8 rounded-lg flex items-center justify-center text-sm" style={{ background: '#F8717122' }}>
                     📉
@@ -402,9 +408,15 @@ export default function DetalheEvento() {
                     <span className="text-xs" style={{ color: '#8888AA' }}>{formatarData(despesa.data)}</span>
                   </div>
                 </div>
-                <span className="text-sm font-medium" style={{ color: '#F87171' }}>
-                  -{formatarMoeda(despesa.valor)}
-                </span>
+                <div className="flex items-center gap-3">
+                  <span className="text-sm font-medium" style={{ color: '#F87171' }}>
+                    -{formatarMoeda(despesa.valor)}
+                  </span>
+                  <button onClick={() => removerDespesa(despesa.id)}
+                    className="opacity-0 group-hover:opacity-100 p-1 transition-opacity">
+                    <Trash2 size={14} style={{ color: '#F87171' }} />
+                  </button>
+                </div>
               </div>
             ))}
           </div>
