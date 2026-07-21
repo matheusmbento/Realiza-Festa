@@ -1,11 +1,12 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import { Plus, Search, Package } from 'lucide-react'
+import { Plus, Search, Package, Trash } from 'lucide-react'
 import { Card, Badge, Button, EmptyState, Loading, SectionHeader } from '@/components/ui'
 import type { ItemEstoque, CategoriaEstoque } from '@/types'
 import ModalItemEstoque from '@/components/estoque/ModalItemEstoque'
 import ModalCategoria from '@/components/estoque/ModalCategoria'
+import { toast } from 'sonner'
 
 export default function EstoquePage() {
   const [itens, setItens] = useState<ItemEstoque[]>([])
@@ -41,6 +42,22 @@ export default function EstoquePage() {
     itens: itens.filter(i => i.categoria_id === cat.id),
   })).filter(g => g.itens.length > 0)
 
+  async function excluirCategoria(id: string) {
+    if (!confirm('Deseja realmente excluir esta categoria?')) return
+    try {
+      const res = await fetch(`/api/estoque/categorias/${id}`, { method: 'DELETE' })
+      if (!res.ok) {
+        const errorData = await res.json()
+        throw new Error(errorData.error || 'Erro ao excluir')
+      }
+      toast.success('Categoria excluída com sucesso!')
+      setCategoriaFiltro('')
+      carregar()
+    } catch (err: any) {
+      toast.error(err.message)
+    }
+  }
+
   return (
     <div className="space-y-5 fade-in">
       <SectionHeader
@@ -69,15 +86,27 @@ export default function EstoquePage() {
           style={!categoriaFiltro ? { background: '#FF6B9D', color: '#0F0F14' } : { background: '#1A1A24', color: '#8888AA', border: '1px solid #2A2A38' }}>
           Todos
         </button>
-        {categorias.map(cat => (
-          <button key={cat.id} onClick={() => setCategoriaFiltro(cat.id)}
-            className="flex-shrink-0 px-3 py-1.5 rounded-full text-xs font-medium transition-all"
-            style={categoriaFiltro === cat.id
-              ? { background: cat.cor, color: '#0F0F14' }
-              : { background: '#1A1A24', color: '#8888AA', border: '1px solid #2A2A38' }}>
-            {cat.nome}
-          </button>
-        ))}
+        {categorias.map(cat => {
+          const isSelected = categoriaFiltro === cat.id
+          return (
+            <button key={cat.id} onClick={() => setCategoriaFiltro(cat.id)}
+              className="flex items-center gap-1.5 flex-shrink-0 px-3 py-1.5 rounded-full text-xs font-medium transition-all"
+              style={isSelected
+                ? { background: cat.cor, color: '#0F0F14' }
+                : { background: '#1A1A24', color: '#8888AA', border: '1px solid #2A2A38' }}>
+              {cat.nome}
+              {isSelected && (
+                <span 
+                  onClick={(e) => { e.stopPropagation(); excluirCategoria(cat.id); }}
+                  className="p-1 -mr-1.5 rounded-full hover:bg-black/20 transition-colors"
+                  title="Excluir Categoria"
+                >
+                  <Trash size={12} />
+                </span>
+              )}
+            </button>
+          )
+        })}
         {/* Botão sutil Nova Categoria */}
         <button onClick={() => setModalCategoria(true)}
           className="flex-shrink-0 px-3 py-1.5 rounded-full text-xs font-medium transition-all hover:brightness-110"
