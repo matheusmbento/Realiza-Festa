@@ -8,6 +8,7 @@ import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend } fro
 import type { Lancamento } from '@/types'
 import ModalLancamento from '@/components/financeiro/ModalLancamento'
 import { Trash2, Lock } from 'lucide-react'
+import { toast } from 'sonner'
 
 interface Dashboard {
   receita: number; custos: number; lucro: number; a_receber: number
