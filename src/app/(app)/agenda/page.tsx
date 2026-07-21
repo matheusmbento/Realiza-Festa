@@ -43,6 +43,12 @@ export default function AgendaPage() {
     ? eventos.filter(e => e.data_evento === diaSelecionado)
     : []
 
+  const hjStr = hoje.toISOString().split('T')[0]
+  const proximosEventos = [...eventos]
+    .filter(e => e.data_evento >= hjStr)
+    .sort((a, b) => a.data_evento.localeCompare(b.data_evento))
+    .slice(0, 5)
+
   function navMes(dir: number) {
     const novoMes = mesAtual + dir
     if (novoMes < 0) { setMesAtual(11); setAnoAtual(a => a - 1) }
@@ -70,8 +76,8 @@ export default function AgendaPage() {
 
         {/* Dias da semana */}
         <div className="grid grid-cols-7 mb-2">
-          {DIAS_SEMANA.map(d => (
-            <div key={d} className="text-center text-xs font-medium py-1" style={{ color: '#8888AA' }}>{d}</div>
+          {DIAS_SEMANA.map((d, i) => (
+            <div key={d} className="text-center text-xs font-medium py-1" style={{ color: i === 0 || i === 6 ? '#FF6B9D88' : '#8888AA' }}>{d}</div>
           ))}
         </div>
 
@@ -83,28 +89,80 @@ export default function AgendaPage() {
             const isHoje = ds === hoje.toISOString().split('T')[0]
             const isSelecionado = ds === diaSelecionado
             const evs = eventosNoDia(dia)
+            const diaSemana = new Date(ds + 'T12:00').getDay()
+            const isFimDeSemana = diaSemana === 0 || diaSemana === 6
             return (
               <button key={i} onClick={() => setDiaSelecionado(ds)}
-                className="aspect-square flex flex-col items-center justify-center rounded-xl text-sm font-medium transition-all relative"
-                style={isSelecionado
-                  ? { background: '#FF6B9D', color: '#0F0F14' }
-                  : isHoje
-                    ? { background: '#FF6B9D22', color: '#FF6B9D', border: '1px solid #FF6B9D44' }
-                    : { color: evs.length > 0 ? '#E8E8F0' : '#8888AA' }}>
-                {dia}
+                className="flex flex-col items-center justify-start w-full min-h-[64px] py-1.5 rounded-xl transition-all gap-0.5"
+                style={isSelecionado ? { background: '#ffffff05' } : { background: 'transparent' }}>
+                
+                {/* Número do dia */}
+                <span className="text-sm font-medium w-9 h-9 flex items-center justify-center rounded-full flex-shrink-0"
+                  style={isSelecionado
+                    ? { background: '#FF6B9D', color: '#0F0F14' }
+                    : isHoje
+                      ? { color: '#FF6B9D', border: '2px solid #FF6B9D', background: 'transparent' }
+                      : { color: evs.length > 0 ? '#E8E8F0' : isFimDeSemana ? '#FF6B9D55' : '#8888AA' }
+                  }>
+                  {dia}
+                </span>
+
+                {/* Chips de evento */}
                 {evs.length > 0 && (
-                  <span className="absolute bottom-1 left-1/2 -translate-x-1/2 flex gap-0.5">
-                    {evs.slice(0, 3).map((e, j) => (
-                      <span key={j} className="w-1 h-1 rounded-full"
-                            style={{ background: isSelecionado ? '#0F0F14' : STATUS_CORES[e.status as StatusEvento] }} />
+                  <div className="flex flex-col w-full px-1 gap-0.5 mt-0.5">
+                    {evs.slice(0, 2).map((e, idx) => (
+                      <span key={idx}
+                            className="text-[9px] font-medium px-1.5 py-0.5 rounded-full w-full text-center truncate leading-tight"
+                            style={{
+                              background: STATUS_CORES[e.status as StatusEvento] + '33',
+                              color: STATUS_CORES[e.status as StatusEvento],
+                            }}>
+                        {evs.length > 2 && idx === 1
+                          ? `+${evs.length - 1}`
+                          : e.nome.split(' ')[0]}
+                      </span>
                     ))}
-                  </span>
+                  </div>
                 )}
               </button>
             )
           })}
         </div>
       </Card>
+
+      {/* Próximos eventos */}
+      {proximosEventos.length > 0 && (
+        <div>
+          <h2 className="text-sm font-semibold mb-2" style={{ color: '#8888AA' }}>
+            Próximos eventos
+          </h2>
+          <div className="space-y-2">
+            {proximosEventos.map(evento => (
+              <Link key={evento.id} href={`/eventos/${evento.id}`}>
+                <div className="flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all mb-2"
+                     style={{
+                       background: '#1A1A24',
+                       border: `1px solid ${STATUS_CORES[evento.status as StatusEvento]}44`,
+                       borderLeft: `3px solid ${STATUS_CORES[evento.status as StatusEvento]}`,
+                     }}>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium truncate" style={{ color: '#E8E8F0' }}>
+                      {evento.nome}
+                    </p>
+                    <p className="text-xs" style={{ color: '#8888AA' }}>
+                      {new Date(evento.data_evento + 'T12:00').toLocaleDateString('pt-BR', { day: 'numeric', month: 'short' })}
+                      {evento.hora_montagem ? ` • montagem ${evento.hora_montagem.slice(0,5)}` : ''}
+                    </p>
+                  </div>
+                  <span className="text-xs font-medium flex-shrink-0" style={{ color: STATUS_CORES[evento.status as StatusEvento] }}>
+                    {STATUS_LABELS[evento.status as StatusEvento]}
+                  </span>
+                </div>
+              </Link>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Eventos do dia selecionado */}
       {diaSelecionado && (
@@ -113,11 +171,21 @@ export default function AgendaPage() {
             {new Date(diaSelecionado + 'T12:00').toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' })}
           </h2>
           {loading ? <Loading /> : eventosDiaSelecionado.length === 0 ? (
-            <Card>
-              <p className="text-center text-sm py-4" style={{ color: '#8888AA' }}>
+            <div className="rounded-2xl p-6 text-center" style={{ background: '#1A1A24', border: '1px dashed #2A2A38' }}>
+              <p className="text-sm mb-3" style={{ color: '#8888AA' }}>
                 Nenhum evento neste dia
               </p>
-            </Card>
+              <Link
+                href={`/eventos/novo?data=${diaSelecionado}`}
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold"
+                style={{
+                  background: 'linear-gradient(90deg, #FF6B9D, #FFB400)',
+                  color: '#0F0F14',
+                }}
+              >
+                + Criar evento neste dia
+              </Link>
+            </div>
           ) : (
             <div className="space-y-2">
               {eventosDiaSelecionado.map(evento => {

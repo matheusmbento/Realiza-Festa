@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
+import { useSearchParams, useRouter } from 'next/navigation'
 import { ArrowLeft, Plus, X } from 'lucide-react'
 import { Input, Select, Textarea, Button, Card, SectionHeader } from '@/components/ui'
 import { toast } from 'sonner'
@@ -11,6 +11,9 @@ import SelectCliente from '@/components/eventos/SelectCliente'
 
 export default function NovoEvento() {
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const dataParam = searchParams.get('data') ?? ''
+  
   const [loading, setLoading] = useState(false)
   const [clientes, setClientes] = useState<Cliente[]>([])
   const [cor, setCor] = useState('')
@@ -20,7 +23,7 @@ export default function NovoEvento() {
     nome: '',
     cliente_id: '',
     tipo_evento: 'aniversario',
-    data_evento: '',
+    data_evento: dataParam,
     hora_inicio: '',
     hora_montagem: '',
     local_nome: '',
