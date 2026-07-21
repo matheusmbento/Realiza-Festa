@@ -10,10 +10,14 @@ export const dynamic = 'force-dynamic'
 
 export default async function Dashboard() {
   const supabase = createServerSupabase()
-  const hoje = new Date().toISOString().split('T')[0]
-  const inicioMes = new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split('T')[0]
-  const fimMes = new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0).toISOString().split('T')[0]
+  const dataHoje = new Date()
+  const hoje = dataHoje.toISOString().split('T')[0]
+  const inicioMes = new Date(dataHoje.getFullYear(), dataHoje.getMonth(), 1).toISOString().split('T')[0]
+  const fimMes = new Date(dataHoje.getFullYear(), dataHoje.getMonth() + 1, 0).toISOString().split('T')[0]
   const em30dias = new Date(Date.now() + 30 * 86400000).toISOString().split('T')[0]
+
+  const inicioMesPassado = new Date(dataHoje.getFullYear(), dataHoje.getMonth() - 1, 1).toISOString().split('T')[0]
+  const fimMesPassado = new Date(dataHoje.getFullYear(), dataHoje.getMonth(), 0).toISOString().split('T')[0]
 
   // Eventos próximos (30 dias)
   const { data: eventosProximos } = await supabase
@@ -21,9 +25,10 @@ export default async function Dashboard() {
     .select('*, cliente:clientes(nome, telefone)')
     .gte('data_evento', hoje)
     .lte('data_evento', em30dias)
+    .neq('status', 'concluido')
     .neq('status', 'cancelado')
     .order('data_evento')
-    .limit(5)
+    .limit(10)
 
   // Resumo financeiro do mês
   const { data: lancamentos } = await supabase
@@ -34,6 +39,25 @@ export default async function Dashboard() {
 
   const receita = lancamentos?.filter(l => l.tipo === 'entrada').reduce((s, l) => s + l.valor, 0) ?? 0
   const custos  = lancamentos?.filter(l => l.tipo === 'saida').reduce((s, l) => s + l.valor, 0) ?? 0
+
+  const { data: lancamentosMesPassado } = await supabase
+    .from('lancamentos')
+    .select('tipo, valor')
+    .gte('data', inicioMesPassado)
+    .lte('data', fimMesPassado)
+
+  const receitaMesPassado = lancamentosMesPassado?.filter(l => l.tipo === 'entrada').reduce((s, l) => s + l.valor, 0) ?? 0
+  const custosMesPassado  = lancamentosMesPassado?.filter(l => l.tipo === 'saida').reduce((s, l) => s + l.valor, 0) ?? 0
+
+  function calcDelta(atual: number, anterior: number): { texto: string; positivo: boolean } | null {
+    if (anterior === 0) return null
+    const pct = Math.round(((atual - anterior) / anterior) * 100)
+    const positivo = pct >= 0
+    return { texto: `${positivo ? '↑' : '↓'} ${Math.abs(pct)}% vs mês anterior`, positivo }
+  }
+
+  const deltaReceita = calcDelta(receita, receitaMesPassado)
+  const deltaCustos = calcDelta(custos, custosMesPassado)
 
   // A receber (eventos com saldo)
   const { data: aReceber } = await supabase
@@ -102,11 +126,37 @@ export default async function Dashboard() {
 
       {/* Stats financeiros */}
       <div className="grid grid-cols-2 gap-3">
-        <StatCard icone="💰" label="Receita do mês" valor={formatarMoeda(receita)} cor="#4ADE80" />
-        <StatCard icone="⏳" label="A receber" valor={formatarMoeda(totalAReceber)} cor="#FFB400" />
-        <StatCard icone="📉" label="Custos do mês" valor={formatarMoeda(custos)} cor="#F87171" />
-        <StatCard icone="🌟" label="Leads abertos" valor={String(leadsAbertos ?? 0)} cor="#7C3AED"
-                  sub="oportunidades" />
+        <StatCard 
+          icone="💰" 
+          label="Receita do mês" 
+          valor={formatarMoeda(receita)} 
+          cor="#4ADE80" 
+          sub={deltaReceita?.texto}
+          subCor={deltaReceita ? (deltaReceita.positivo ? '#4ADE80' : '#F87171') : undefined}
+        />
+        <StatCard 
+          icone="⏳" 
+          label="A receber" 
+          valor={formatarMoeda(totalAReceber)} 
+          cor="#FFB400" 
+          sub={totalAReceber === 0 ? 'Tudo quitado ✅' : undefined}
+          subCor={totalAReceber === 0 ? '#4ADE80' : undefined}
+        />
+        <StatCard 
+          icone="📉" 
+          label="Custos do mês" 
+          valor={formatarMoeda(custos)} 
+          cor="#F87171" 
+          sub={deltaCustos?.texto}
+          subCor={deltaCustos ? (deltaCustos.positivo ? '#F87171' : '#4ADE80') : undefined}
+        />
+        <StatCard 
+          icone="✨" 
+          label="Leads abertos" 
+          valor={String(leadsAbertos ?? 0)} 
+          cor="#7C3AED"
+          sub="oportunidades" 
+        />
       </div>
 
       {/* Próximos eventos */}

@@ -255,16 +255,17 @@ interface StatCardProps {
   valor: string
   cor?: string
   sub?: string
+  subCor?: string
 }
 
-export function StatCard({ icone, label, valor, cor = '#FF6B9D', sub }: StatCardProps) {
+export function StatCard({ icone, label, valor, cor = '#FF6B9D', sub, subCor }: StatCardProps) {
   return (
     <Card>
       <div className="flex items-start justify-between">
         <div>
           <p className="text-xs font-medium mb-1" style={{ color: '#8888AA' }}>{label}</p>
           <p className="text-2xl font-bold font-display" style={{ color: cor }}>{valor}</p>
-          {sub && <p className="text-xs mt-1" style={{ color: '#8888AA' }}>{sub}</p>}
+          {sub && <p className="text-xs mt-1" style={{ color: subCor || '#8888AA' }}>{sub}</p>}
         </div>
         <span className="text-2xl">{icone}</span>
       </div>
