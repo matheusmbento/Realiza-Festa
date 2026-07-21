@@ -548,10 +548,10 @@ export default function DetalheEvento() {
                             <span className="text-xs font-medium" style={{ color: '#8888AA' }}>
                               × {aloc.quantidade}
                             </span>
-                            <button onClick={() => toggleAlocacao(aloc)} className="flex-shrink-0 transition-transform active:scale-95">
+                            <button onClick={() => toggleAlocacao(aloc)} className="flex-shrink-0 transition-transform active:scale-95 p-2 -mr-2">
                               {aloc.confirmado
-                                ? <CheckCircle2 size={20} style={{ color: '#4ADE80' }} />
-                                : <Circle size={20} style={{ color: '#3A3A50' }} />}
+                                ? <CheckCircle2 size={24} style={{ color: '#4ADE80' }} />
+                                : <Circle size={24} style={{ color: '#3A3A50' }} />}
                             </button>
                           </div>
                         </div>
@@ -630,10 +630,10 @@ export default function DetalheEvento() {
         <div className="space-y-2 mb-3">
           {checklist.map(item => (
             <div key={item.id} className="flex items-center gap-2.5 group">
-              <button onClick={() => toggleChecklist(item)} className="flex-shrink-0">
+              <button onClick={() => toggleChecklist(item)} className="flex-shrink-0 p-1.5 -ml-1.5">
                 {item.concluido
-                  ? <CheckCircle2 size={20} style={{ color: '#4ADE80' }} />
-                  : <Circle size={20} style={{ color: '#3A3A50' }} />}
+                  ? <CheckCircle2 size={24} style={{ color: '#4ADE80' }} />
+                  : <Circle size={24} style={{ color: '#3A3A50' }} />}
               </button>
               <div className="flex-1">
                 <p className="text-sm" style={{
