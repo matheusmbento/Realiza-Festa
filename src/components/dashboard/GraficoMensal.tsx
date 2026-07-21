@@ -46,11 +46,6 @@ export default function GraficoMensal({ dados }: Props) {
     return v.toFixed(0)
   }
 
-  const receitaPath = gerarPath(dados.map(d => d.receita))
-  const custosPath = gerarPath(dados.map(d => d.custos))
-  const lucroPath = gerarPath(dados.map(d => d.lucro < 0 ? 0 : d.lucro))
-  const receitaArea = gerarArea(dados.map(d => d.receita))
-
   return (
     <div className="rounded-2xl p-4" style={{ background: '#1A1A24', border: '1px solid #2A2A38' }}>
       <div className="flex items-center justify-between mb-3">
