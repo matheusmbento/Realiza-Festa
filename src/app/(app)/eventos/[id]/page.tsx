@@ -26,7 +26,6 @@ export default function DetalheEvento() {
   const [modalDesp, setModalDesp] = useState(false)
   const [novoItem, setNovoItem] = useState('')
   const [adicionandoItem, setAdicionandoItem] = useState(false)
-  const [adicionandoItem, setAdicionandoItem] = useState(false)
 
   const carregar = useCallback(async () => {
     const res = await fetch(`/api/eventos/${id}`)
