@@ -209,6 +209,28 @@ export default function DetalheEvento() {
     return partes.join('\n')
   }
 
+  // Gera textos variados dependendo do tipo de contato
+  function gerarMensagemContato(tipo: string): string {
+    const cliente = (evento as any).cliente
+    const nomeCliente = cliente?.nome?.split(' ')[0] ?? 'cliente'
+
+    if (tipo === 'confirmacao') return gerarMensagemConfirmacao()
+
+    if (tipo === 'pre_evento') {
+      return `Olá, ${nomeCliente}! 🎉\n\nPassando aqui para lembrar que faltam poucos dias para a nossa festa! Está tudo preparadinho por aqui.\n\nSe tiver alguma dúvida de última hora ou precisar ajustar algum detalhe, é só me chamar! 💕\n\n— Realiza Festa`
+    }
+
+    if (tipo === 'feedback') {
+      return `Olá, ${nomeCliente}! Tudo bem? 🌟\n\nPassando para agradecer mais uma vez a confiança no nosso trabalho! Como foi a festa? Deu tudo certo com os nossos itens? \n\nNosso maior objetivo é sempre garantir a alegria da festa, então adoraríamos saber o que você achou!\n\nUm abraço,\n— Realiza Festa`
+    }
+
+    if (tipo === 'pos_venda') {
+      return `Olá, ${nomeCliente}! Tudo bem? 🎂\n\nLogo logo vai fazer 1 ano daquela festa linda que fizemos juntos! Como o tempo voa, né?\n\nPassando só pra avisar que estamos com várias novidades incríveis para o próximo evento. Se já estiver planejando algo, me dá um toque pra já garantirmos a sua data!\n\nUm abraço,\n— Realiza Festa`
+    }
+
+    return ''
+  }
+
   // Abre WhatsApp com mensagem pré-preenchida
   function abrirWhatsApp(telefone?: string, mensagem?: string) {
     const tel = telefone?.replace(/\D/g, '') ?? ''
@@ -764,7 +786,7 @@ export default function DetalheEvento() {
                   ) : (
                     <div className="flex items-center gap-1.5 flex-shrink-0">
                       <button
-                        onClick={() => abrirWhatsApp(cliente?.telefone)}
+                        onClick={() => abrirWhatsApp(cliente?.telefone, gerarMensagemContato(contato.tipo))}
                         className="p-1.5 rounded-lg text-sm"
                         style={{ background: '#25D36622', color: '#25D366' }}
                         title="Abrir WhatsApp"
