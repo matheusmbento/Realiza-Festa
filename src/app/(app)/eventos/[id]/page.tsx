@@ -39,6 +39,7 @@ export default function DetalheEvento() {
   const [novoItem, setNovoItem] = useState('')
   const [adicionandoItem, setAdicionandoItem] = useState(false)
   const [contatos, setContatos] = useState<ContatoEvento[]>([])
+  const [mostrarRomaneioTudo, setMostrarRomaneioTudo] = useState(false)
 
   const carregar = useCallback(async () => {
     const [eventoRes, contatosRes] = await Promise.all([
@@ -509,7 +510,7 @@ export default function DetalheEvento() {
           </p>
         ) : (
           <div className="space-y-4">
-            {categoriasUnicas.map(cat => {
+            {(mostrarRomaneioTudo ? categoriasUnicas : categoriasUnicas.slice(0, 5)).map(cat => {
               const itens = alocacoesPorCategoria[cat]
               const concluidosCat = itens.filter((a: any) => a.confirmado).length
               return (
@@ -561,6 +562,14 @@ export default function DetalheEvento() {
                 </details>
               )
             })}
+            
+            {categoriasUnicas.length > 5 && !mostrarRomaneioTudo && (
+              <button onClick={() => setMostrarRomaneioTudo(true)}
+                className="w-full py-2 mt-2 text-xs font-medium rounded-lg transition-colors hover:bg-white/5"
+                style={{ color: '#8888AA', border: '1px dashed #2A2A38' }}>
+                Mostrar + {categoriasUnicas.length - 5} categorias
+              </button>
+            )}
           </div>
         )}
       </Card>
