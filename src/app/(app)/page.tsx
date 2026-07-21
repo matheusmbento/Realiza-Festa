@@ -12,6 +12,7 @@ export default async function Dashboard() {
   const supabase = createServerSupabase()
   const dataHoje = new Date()
   const hoje = dataHoje.toISOString().split('T')[0]
+  const amanha = new Date(Date.now() + 86400000).toISOString().split('T')[0]
   const inicioMes = new Date(dataHoje.getFullYear(), dataHoje.getMonth(), 1).toISOString().split('T')[0]
   const fimMes = new Date(dataHoje.getFullYear(), dataHoje.getMonth() + 1, 0).toISOString().split('T')[0]
   const em30dias = new Date(Date.now() + 30 * 86400000).toISOString().split('T')[0]
@@ -77,8 +78,9 @@ export default async function Dashboard() {
     .select('*', { count: 'exact', head: true })
     .eq('status', 'aberto')
 
-  // Eventos de hoje
+  // Eventos de hoje e amanhã
   const eventosHoje = eventosProximos?.filter(e => e.data_evento === hoje) ?? []
+  const eventosAmanha = eventosProximos?.filter(e => e.data_evento === amanha) ?? []
 
   // Avisos pendentes (Checklist com prazos próximos, até 7 dias)
   const seteDiasFrente = new Date(Date.now() + 7 * 86400000).toISOString().split('T')[0]
@@ -91,15 +93,50 @@ export default async function Dashboard() {
     .order('prazo')
     .limit(5)
 
+  function gerarSaudacao(): { titulo: string; subtitulo: string } {
+    if (eventosHoje.length === 1) {
+      return {
+        titulo: `Dia de festa! 🎪`,
+        subtitulo: `${eventosHoje[0].nome} está na agenda de hoje`,
+      }
+    }
+    if (eventosHoje.length > 1) {
+      return {
+        titulo: `Dia cheio! 🎪`,
+        subtitulo: `${eventosHoje.length} eventos hoje — bora lá`,
+      }
+    }
+    if (eventosAmanha.length === 1) {
+      return {
+        titulo: `Bom dia! 👋`,
+        subtitulo: `Amanhã tem ${eventosAmanha[0].nome} — prepare a carga`,
+      }
+    }
+    if (eventosAmanha.length > 1) {
+      return {
+        titulo: `Bom dia! 👋`,
+        subtitulo: `${eventosAmanha.length} eventos amanhã — hora de preparar`,
+      }
+    }
+    return {
+      titulo: `Bom dia! ✨`,
+      subtitulo: new Date().toLocaleDateString('pt-BR', {
+        weekday: 'long', day: 'numeric', month: 'long',
+      }),
+    }
+  }
+
+  const saudacao = gerarSaudacao()
+
   return (
     <div className="space-y-6 fade-in">
       {/* Saudação */}
       <div>
-        <h1 className="font-display text-2xl font-bold flex items-center gap-2" style={{ color: '#E8E8F0' }}>
-          Eae Clara 🎉
+        <h1 className="font-display text-2xl font-bold" style={{ color: '#E8E8F0' }}>
+          {saudacao.titulo}
         </h1>
         <p className="text-sm mt-0.5" style={{ color: '#8888AA' }}>
-          {new Date().toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' })}
+          {saudacao.subtitulo}
         </p>
       </div>
 
