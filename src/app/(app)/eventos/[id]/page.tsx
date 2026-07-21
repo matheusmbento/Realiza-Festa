@@ -26,6 +26,7 @@ export default function DetalheEvento() {
   const [modalDesp, setModalDesp] = useState(false)
   const [novoItem, setNovoItem] = useState('')
   const [adicionandoItem, setAdicionandoItem] = useState(false)
+  const [limiteAlocacoes, setLimiteAlocacoes] = useState(5)
 
   const carregar = useCallback(async () => {
     const res = await fetch(`/api/eventos/${id}`)
@@ -346,7 +347,7 @@ export default function DetalheEvento() {
           </p>
         ) : (
           <div className="space-y-2">
-            {alocacoes.map(aloc => {
+            {alocacoes.slice(0, limiteAlocacoes).map((aloc: any) => {
               const item = (aloc as unknown as { item?: { nome: string; categoria?: { nome: string; cor: string } } }).item
               return (
                 <div key={aloc.id} className="flex items-center justify-between py-2 border-b last:border-0"
@@ -376,6 +377,18 @@ export default function DetalheEvento() {
                 </div>
               )
             })}
+            
+            {alocacoes.length > limiteAlocacoes && (
+              <div className="mt-2 pt-2 border-t text-center" style={{ borderColor: '#2A2A38' }}>
+                <button 
+                  onClick={() => setLimiteAlocacoes(prev => prev + 15)}
+                  className="text-xs font-medium px-4 py-2 rounded-lg transition-colors hover:bg-white/5"
+                  style={{ color: '#FF6B9D' }}
+                >
+                  Carregar mais {Math.min(15, alocacoes.length - limiteAlocacoes)} itens ▾
+                </button>
+              </div>
+            )}
           </div>
         )}
       </Card>
