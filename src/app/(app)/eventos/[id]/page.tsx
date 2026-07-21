@@ -26,7 +26,7 @@ export default function DetalheEvento() {
   const [modalDesp, setModalDesp] = useState(false)
   const [novoItem, setNovoItem] = useState('')
   const [adicionandoItem, setAdicionandoItem] = useState(false)
-  const [limiteAlocacoes, setLimiteAlocacoes] = useState(5)
+  const [adicionandoItem, setAdicionandoItem] = useState(false)
 
   const carregar = useCallback(async () => {
     const res = await fetch(`/api/eventos/${id}`)
@@ -107,6 +107,15 @@ export default function DetalheEvento() {
   const concluidos = checklist.filter(i => i.concluido).length
   const alocacoes = evento.alocacoes ?? []
   const alocacoesConcluidas = alocacoes.filter((a: any) => a.confirmado).length
+  
+  const alocacoesPorCategoria = alocacoes.reduce((acc: any, aloc: any) => {
+    const item = aloc.item || {}
+    const categoria = item.categoria?.nome ?? 'Outros'
+    if (!acc[categoria]) acc[categoria] = []
+    acc[categoria].push(aloc)
+    return acc
+  }, {} as Record<string, any[]>)
+  const categoriasUnicas = Object.keys(alocacoesPorCategoria)
   const saldo = evento.valor_total - evento.valor_sinal
   
   // Financeiro
@@ -320,19 +329,8 @@ export default function DetalheEvento() {
         <div className="flex items-center justify-between mb-3">
           <h2 className="text-sm font-semibold" style={{ color: '#E8E8F0' }}>
             Romaneio de Carga
-            <span className="ml-2 text-xs font-normal" style={{ color: '#8888AA' }}>
-              {alocacoesConcluidas}/{alocacoes.length}
-            </span>
           </h2>
           <div className="flex items-center gap-3">
-            {alocacoes.length > 0 && (
-              <div className="w-16 h-1.5 rounded-full hidden sm:block" style={{ background: '#2A2A38' }}>
-                <div className="h-full rounded-full transition-all" style={{
-                  width: `${(alocacoesConcluidas / alocacoes.length) * 100}%`,
-                  background: '#4ADE80',
-                }} />
-              </div>
-            )}
             <Link href={`/eventos/${id}/itens`}>
               <button className="text-xs px-2.5 py-1 rounded-lg transition-colors hover:bg-white/5" style={{ background: '#2A2A38', color: '#E8E8F0' }}>
                 <Plus size={12} className="inline mr-1" />
@@ -341,54 +339,71 @@ export default function DetalheEvento() {
             </Link>
           </div>
         </div>
+
+        {/* Resumo e Barra de Progresso */}
+        {alocacoes.length > 0 && (
+          <div className="mb-5">
+            <div className="flex items-center justify-between text-xs mb-2" style={{ color: '#8888AA' }}>
+              <span>{categoriasUnicas.length} categoria{categoriasUnicas.length !== 1 ? 's' : ''} • {alocacoes.length} item{alocacoes.length !== 1 ? 'ns' : ''}</span>
+              <span style={{ color: alocacoesConcluidas === alocacoes.length ? '#4ADE80' : '#E8E8F0' }}>
+                {alocacoesConcluidas} confirmados
+              </span>
+            </div>
+            <div className="w-full h-1.5 rounded-full" style={{ background: '#2A2A38' }}>
+              <div className="h-full rounded-full transition-all" style={{
+                width: `${(alocacoesConcluidas / alocacoes.length) * 100}%`,
+                background: alocacoesConcluidas === alocacoes.length ? '#4ADE80' : '#FFB400',
+              }} />
+            </div>
+          </div>
+        )}
+
         {alocacoes.length === 0 ? (
           <p className="text-sm text-center py-4" style={{ color: '#8888AA' }}>
             Nenhum item alocado ainda
           </p>
         ) : (
-          <div className="space-y-2">
-            {alocacoes.slice(0, limiteAlocacoes).map((aloc: any) => {
-              const item = (aloc as unknown as { item?: { nome: string; categoria?: { nome: string; cor: string } } }).item
+          <div className="space-y-4">
+            {categoriasUnicas.map(cat => {
+              const itens = alocacoesPorCategoria[cat]
+              const concluidosCat = itens.filter((a: any) => a.confirmado).length
               return (
-                <div key={aloc.id} className="flex items-center justify-between py-2 border-b last:border-0"
-                     style={{ borderColor: '#2A2A38' }}>
-                  <div className="flex items-center gap-2.5">
-                    <div className="w-8 h-8 rounded-lg flex items-center justify-center text-sm"
-                         style={{ background: `${item?.categoria?.cor || '#FF6B9D'}22` }}>
-                      📦
+                <details key={cat} className="group" open>
+                  <summary className="flex items-center justify-between cursor-pointer py-1.5 outline-none select-none">
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs font-semibold uppercase tracking-wider" style={{ color: '#E8E8F0' }}>{cat}</span>
                     </div>
-                    <div>
-                      <p className="text-sm font-medium" style={{ color: '#E8E8F0' }}>{item?.nome}</p>
-                      {item?.categoria && (
-                        <Badge color={item.categoria.cor}>{item.categoria.nome}</Badge>
-                      )}
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <span className="text-sm font-medium" style={{ color: '#E8E8F0' }}>
-                      × {aloc.quantidade}
+                    <span className="text-xs font-medium" style={{ color: concluidosCat === itens.length ? '#4ADE80' : '#8888AA' }}>
+                      ({concluidosCat}/{itens.length} {concluidosCat === itens.length ? '✓' : ''})
                     </span>
-                    <button onClick={() => toggleAlocacao(aloc)} className="flex-shrink-0 transition-transform active:scale-95">
-                      {aloc.confirmado
-                        ? <CheckCircle2 size={24} style={{ color: '#4ADE80' }} />
-                        : <Circle size={24} style={{ color: '#3A3A50' }} />}
-                    </button>
+                  </summary>
+                  
+                  <div className="space-y-1 mt-2 pl-2 border-l-2 ml-1" style={{ borderColor: '#2A2A38' }}>
+                    {itens.map((aloc: any) => {
+                      const item = aloc.item || {}
+                      return (
+                        <div key={aloc.id} className="flex items-center justify-between py-1.5 pl-3 border-b last:border-0 group/item hover:bg-white/5 rounded-lg transition-colors"
+                             style={{ borderColor: '#2A2A38' }}>
+                          <div className="flex items-center gap-2.5">
+                            <p className="text-sm" style={{ color: '#E8E8F0' }}>{item.nome || 'Item Desconhecido'}</p>
+                          </div>
+                          <div className="flex items-center gap-4 pr-2">
+                            <span className="text-xs font-medium" style={{ color: '#8888AA' }}>
+                              × {aloc.quantidade}
+                            </span>
+                            <button onClick={() => toggleAlocacao(aloc)} className="flex-shrink-0 transition-transform active:scale-95">
+                              {aloc.confirmado
+                                ? <CheckCircle2 size={20} style={{ color: '#4ADE80' }} />
+                                : <Circle size={20} style={{ color: '#3A3A50' }} />}
+                            </button>
+                          </div>
+                        </div>
+                      )
+                    })}
                   </div>
-                </div>
+                </details>
               )
             })}
-            
-            {alocacoes.length > limiteAlocacoes && (
-              <div className="mt-2 pt-2 border-t text-center" style={{ borderColor: '#2A2A38' }}>
-                <button 
-                  onClick={() => setLimiteAlocacoes(prev => prev + 15)}
-                  className="text-xs font-medium px-4 py-2 rounded-lg transition-colors hover:bg-white/5"
-                  style={{ color: '#FF6B9D' }}
-                >
-                  Carregar mais {Math.min(15, alocacoes.length - limiteAlocacoes)} itens ▾
-                </button>
-              </div>
-            )}
           </div>
         )}
       </Card>
