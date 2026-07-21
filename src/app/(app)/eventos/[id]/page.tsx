@@ -348,7 +348,7 @@ export default function DetalheEvento() {
         {alocacoes.length > 0 && (
           <div className="mb-5">
             <div className="flex items-center justify-between text-xs mb-2" style={{ color: '#8888AA' }}>
-              <span>{categoriasUnicas.length} categoria{categoriasUnicas.length !== 1 ? 's' : ''} • {alocacoes.length} item{alocacoes.length !== 1 ? 'ns' : ''}</span>
+              <span>{categoriasUnicas.length} categoria{categoriasUnicas.length !== 1 ? 's' : ''} • {alocacoes.length} item{alocacoes.length !== 1 ? 's' : ''}</span>
               <span style={{ color: alocacoesConcluidas === alocacoes.length ? '#4ADE80' : '#E8E8F0' }}>
                 {alocacoesConcluidas} confirmados
               </span>
@@ -373,13 +373,25 @@ export default function DetalheEvento() {
               const concluidosCat = itens.filter((a: any) => a.confirmado).length
               return (
                 <details key={cat} className="group" open>
-                  <summary className="flex items-center justify-between cursor-pointer py-1.5 outline-none select-none">
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs font-semibold uppercase tracking-wider" style={{ color: '#E8E8F0' }}>{cat}</span>
+                  <summary className="cursor-pointer outline-none select-none">
+                    <div className="flex items-center gap-2 mb-2 mt-4">
+                      <span
+                        className="w-2.5 h-2.5 rounded-full flex-shrink-0"
+                        style={{ background: itens[0]?.item?.categoria?.cor ?? '#8888AA' }}
+                      />
+                      <span
+                        className="text-sm font-semibold tracking-wide capitalize"
+                        style={{ color: '#E8E8F0' }}
+                      >
+                        {cat}
+                      </span>
+                      <span
+                        className="text-xs ml-auto font-medium"
+                        style={{ color: concluidosCat === itens.length ? '#4ADE80' : (concluidosCat > 0 ? '#FFB400' : '#F87171') }}
+                      >
+                        ({concluidosCat}/{itens.length} ✓)
+                      </span>
                     </div>
-                    <span className="text-xs font-medium" style={{ color: concluidosCat === itens.length ? '#4ADE80' : '#8888AA' }}>
-                      ({concluidosCat}/{itens.length} {concluidosCat === itens.length ? '✓' : ''})
-                    </span>
                   </summary>
                   
                   <div className="space-y-1 mt-2 pl-2 border-l-2 ml-1" style={{ borderColor: '#2A2A38' }}>

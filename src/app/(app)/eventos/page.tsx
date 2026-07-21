@@ -61,6 +61,15 @@ export default function EventosPage() {
     setLoadingMore(false)
   }
 
+  const eventosPorMes = eventos.reduce((acc, evento) => {
+    const chave = evento.data_evento.slice(0, 7) // "2026-07"
+    if (!acc[chave]) acc[chave] = []
+    acc[chave].push(evento)
+    return acc
+  }, {} as Record<string, typeof eventos>)
+
+  const mesesOrdenados = Object.keys(eventosPorMes).sort()
+
   return (
     <div className="space-y-5 fade-in">
       <SectionHeader
@@ -122,71 +131,92 @@ export default function EventosPage() {
           }
         />
       ) : (
-        <div className="space-y-3">
-          {eventos.map(evento => {
-            const dias = diasParaEvento(evento.data_evento)
-            const corStatus = STATUS_CORES[evento.status as StatusEvento]
+        <div className="space-y-6">
+          {mesesOrdenados.map(mes => {
+            const [ano, mesNum] = mes.split('-')
+            const label = new Date(Number(ano), Number(mesNum) - 1, 1).toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })
+
             return (
-              <Link key={evento.id} href={`/eventos/${evento.id}`}>
-                <Card className="hover:border-pink-500/20 transition-colors active:scale-[0.99]">
-                  {/* Header */}
-                  <div className="flex items-start justify-between gap-2">
-                    <div className="flex-1 min-w-0">
-                      <h3 className="font-semibold text-sm truncate" style={{ color: '#E8E8F0' }}>
-                        {evento.nome}
-                      </h3>
-                      <p className="text-xs mt-0.5" style={{ color: '#8888AA' }}>
-                        {TIPO_EVENTO_LABELS[evento.tipo_evento as keyof typeof TIPO_EVENTO_LABELS]} •{' '}
-                        {(evento as unknown as { cliente?: { nome: string } }).cliente?.nome}
-                      </p>
-                    </div>
-                    <Badge color={corStatus}>
-                      {STATUS_LABELS[evento.status as StatusEvento]}
-                    </Badge>
-                  </div>
+              <div key={mes}>
+                <div className="flex items-center gap-3 mb-3 mt-5 first:mt-0">
+                  <span className="text-xs font-semibold uppercase tracking-widest" style={{ color: '#8888AA' }}>
+                    {label}
+                  </span>
+                  <div className="flex-1 h-px" style={{ background: '#2A2A38' }} />
+                  <span className="text-xs" style={{ color: '#3A3A50' }}>
+                    {eventosPorMes[mes].length} evento{eventosPorMes[mes].length !== 1 ? 's' : ''}
+                  </span>
+                </div>
 
-                  {/* Detalhes */}
-                  <div className="flex items-center justify-between mt-3">
-                    <div className="flex items-center gap-3">
-                      <div>
-                        <p className="text-xs" style={{ color: '#8888AA' }}>Data</p>
-                        <p className="text-sm font-medium" style={{
-                          color: dias < 0 ? '#8888AA' : dias === 0 ? '#F87171' : dias <= 3 ? '#FFB400' : '#E8E8F0'
-                        }}>
-                          {labelData(evento.data_evento)}
-                        </p>
-                      </div>
-                      {evento.hora_montagem && (
-                        <div>
-                          <p className="text-xs" style={{ color: '#8888AA' }}>Montagem</p>
-                          <p className="text-sm font-medium" style={{ color: '#E8E8F0' }}>
-                            {evento.hora_montagem.slice(0, 5)}
-                          </p>
-                        </div>
-                      )}
-                      {evento.tema && (
-                        <div>
-                          <p className="text-xs" style={{ color: '#8888AA' }}>Tema</p>
-                          <p className="text-sm font-medium truncate max-w-[100px]" style={{ color: '#E8E8F0' }}>
-                            {evento.tema}
-                          </p>
-                        </div>
-                      )}
-                    </div>
+                <div className="space-y-3">
+                  {eventosPorMes[mes].map(evento => {
+                    const dias = diasParaEvento(evento.data_evento)
+                    const corStatus = STATUS_CORES[evento.status as StatusEvento]
+                    return (
+                      <Link key={evento.id} href={`/eventos/${evento.id}`}>
+                        <Card className="hover:border-pink-500/20 transition-colors active:scale-[0.99] mb-3">
+                          {/* Header */}
+                          <div className="flex items-start justify-between gap-2">
+                            <div className="flex-1 min-w-0">
+                              <h3 className="font-semibold text-sm truncate" style={{ color: '#E8E8F0' }}>
+                                {evento.nome}
+                              </h3>
+                              <p className="text-xs mt-0.5" style={{ color: '#8888AA' }}>
+                                {TIPO_EVENTO_LABELS[evento.tipo_evento as keyof typeof TIPO_EVENTO_LABELS]} •{' '}
+                                {(evento as unknown as { cliente?: { nome: string } }).cliente?.nome}
+                              </p>
+                            </div>
+                            <Badge color={corStatus}>
+                              {STATUS_LABELS[evento.status as StatusEvento]}
+                            </Badge>
+                          </div>
 
-                    <div className="text-right">
-                      <p className="text-base font-bold" style={{ color: '#4ADE80' }}>
-                        {formatarMoeda(evento.valor_total)}
-                      </p>
-                      <p className="text-xs mt-0.5" style={{ color: '#8888AA' }}>
-                        {evento.pagamento_final ? '✅ Quitado'
-                         : evento.sinal_recebido ? `Saldo: ${formatarMoeda(evento.valor_total - evento.valor_sinal)}`
-                         : 'Sem pagto'}
-                      </p>
-                    </div>
-                  </div>
-                </Card>
-              </Link>
+                          {/* Detalhes */}
+                          <div className="flex items-center justify-between mt-3">
+                            <div className="flex items-center gap-3">
+                              <div>
+                                <p className="text-xs" style={{ color: '#8888AA' }}>Data</p>
+                                <p className="text-sm font-medium" style={{
+                                  color: dias < 0 ? '#8888AA' : dias === 0 ? '#F87171' : dias <= 3 ? '#FFB400' : '#E8E8F0'
+                                }}>
+                                  {labelData(evento.data_evento)}
+                                </p>
+                              </div>
+                              {evento.hora_montagem && (
+                                <div>
+                                  <p className="text-xs" style={{ color: '#8888AA' }}>Montagem</p>
+                                  <p className="text-sm font-medium" style={{ color: '#E8E8F0' }}>
+                                    {evento.hora_montagem.slice(0, 5)}
+                                  </p>
+                                </div>
+                              )}
+                              {evento.tema && (
+                                <div>
+                                  <p className="text-xs" style={{ color: '#8888AA' }}>Tema</p>
+                                  <p className="text-sm font-medium truncate max-w-[100px]" style={{ color: '#E8E8F0' }}>
+                                    {evento.tema}
+                                  </p>
+                                </div>
+                              )}
+                            </div>
+
+                            <div className="text-right">
+                              <p className="text-base font-bold" style={{ color: '#4ADE80' }}>
+                                {formatarMoeda(evento.valor_total)}
+                              </p>
+                              <p className="text-xs mt-0.5" style={{ color: '#8888AA' }}>
+                                {evento.pagamento_final ? '✅ Quitado'
+                                 : evento.sinal_recebido ? `Saldo: ${formatarMoeda(evento.valor_total - evento.valor_sinal)}`
+                                 : 'Sem pagto'}
+                              </p>
+                            </div>
+                          </div>
+                        </Card>
+                      </Link>
+                    )
+                  })}
+                </div>
+              </div>
             )
           })}
           
