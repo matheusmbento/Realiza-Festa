@@ -25,7 +25,25 @@ export async function PATCH(req: NextRequest, { params }: Params) {
 
 export async function DELETE(_: NextRequest, { params }: Params) {
   const supabase = createServerSupabase()
-  const { error } = await supabase.from('clientes').delete().eq('id', params.id)
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
-  return NextResponse.json({ ok: true })
+  
+  // Verifica se o cliente tem eventos
+  const { data: cliente, error: getErr } = await supabase
+    .from('clientes')
+    .select('id, eventos(id)')
+    .eq('id', params.id)
+    .single()
+    
+  if (getErr) return NextResponse.json({ error: getErr.message }, { status: 404 })
+
+  if (cliente.eventos && cliente.eventos.length > 0) {
+    // Possui eventos: Arquiva
+    const { error } = await supabase.from('clientes').update({ arquivado: true }).eq('id', params.id)
+    if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+    return NextResponse.json({ ok: true, arquivado: true })
+  } else {
+    // Não possui eventos: Exclui permanentemente
+    const { error } = await supabase.from('clientes').delete().eq('id', params.id)
+    if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+    return NextResponse.json({ ok: true, deleted: true })
+  }
 }

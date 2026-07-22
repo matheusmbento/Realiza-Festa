@@ -17,7 +17,20 @@ export async function GET(req: NextRequest) {
     .order('nome')
 
   if (busca) {
-    query = query.or(`nome.ilike.%${busca}%,observacoes.ilike.%${busca}%,filhos.ilike.%${busca}%`)
+    if (busca.trim().toLowerCase().startsWith('/arquivados')) {
+      const termoReal = busca.replace(/^\/arquivados\s*/i, '')
+      query = query.eq('arquivado', true)
+      if (termoReal) {
+        query = query.or(`nome.ilike.%${termoReal}%,observacoes.ilike.%${termoReal}%,filhos.ilike.%${termoReal}%`)
+      }
+    } else {
+      // Clientes ativos
+      query = query.or('arquivado.is.null,arquivado.eq.false')
+      query = query.or(`nome.ilike.%${busca}%,observacoes.ilike.%${busca}%,filhos.ilike.%${busca}%`)
+    }
+  } else {
+    // Por padrão mostra só os ativos
+    query = query.or('arquivado.is.null,arquivado.eq.false')
   }
 
   query = query.range(offset, offset + limit - 1)

@@ -51,6 +51,7 @@ export interface Cliente {
   cidade?: string
   observacoes?: string
   filhos?: string
+  arquivado?: boolean
   criado_em: string
   // Calculado no front
   total_eventos?: number

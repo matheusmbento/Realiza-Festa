@@ -47,17 +47,39 @@ export default function ClienteDetalhes() {
   }
 
   async function excluirCliente() {
-    if (!confirm('Deseja realmente excluir este cliente? Esta ação não pode ser desfeita.')) return
+    if (!confirm('Deseja remover este cliente? Se ele possuir eventos, será apenas arquivado para não perder o histórico financeiro.')) return
     try {
       const res = await fetch(`/api/clientes/${params.id}`, { method: 'DELETE' })
       if (!res.ok) {
         const errorData = await res.json()
         throw new Error(errorData.error || 'Erro ao excluir')
       }
-      toast.success('Cliente excluído com sucesso!')
-      router.push('/clientes')
+      
+      const data = await res.json()
+      if (data.arquivado) {
+        toast.success('Cliente arquivado com sucesso!')
+        setCliente(prev => prev ? { ...prev, arquivado: true } : prev)
+      } else {
+        toast.success('Cliente excluído com sucesso!')
+        router.push('/clientes')
+      }
     } catch (err: any) {
       toast.error(err.message || 'Erro ao excluir cliente')
+    }
+  }
+
+  async function desarquivarCliente() {
+    try {
+      const res = await fetch(`/api/clientes/${params.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ arquivado: false })
+      })
+      if (!res.ok) throw new Error('Erro ao desarquivar')
+      toast.success('Cliente restaurado!')
+      setCliente(prev => prev ? { ...prev, arquivado: false } : prev)
+    } catch (err: any) {
+      toast.error(err.message || 'Erro ao desarquivar cliente')
     }
   }
 
@@ -74,15 +96,24 @@ export default function ClienteDetalhes() {
             <ArrowLeft size={20} />
           </Link>
           <SectionHeader titulo={cliente.nome} />
-          {isVip && <Badge color="#FFB400">🌟 VIP</Badge>}
+          {cliente.arquivado && <Badge color="#8888AA">🗄️ Arquivado</Badge>}
+          {isVip && !cliente.arquivado && <Badge color="#FFB400">🌟 VIP</Badge>}
         </div>
         <div className="flex items-center gap-2">
-          <Button onClick={excluirCliente} variante="ghost" className="p-2.5 rounded-xl hover:bg-red-500/20" style={{ color: '#F87171' }} title="Excluir cliente">
-            <Trash size={16} />
-          </Button>
-          <Link href={`/eventos/novo?cliente_id=${cliente.id}`}>
-            <Button><Plus size={16} /> Novo Evento</Button>
-          </Link>
+          {cliente.arquivado ? (
+            <Button onClick={desarquivarCliente} variante="secundario" className="text-xs">
+              Restaurar Cliente
+            </Button>
+          ) : (
+            <>
+              <Button onClick={excluirCliente} variante="ghost" className="p-2.5 rounded-xl hover:bg-red-500/20" style={{ color: '#F87171' }} title="Excluir ou Arquivar">
+                <Trash size={16} />
+              </Button>
+              <Link href={`/eventos/novo?cliente_id=${cliente.id}`}>
+                <Button><Plus size={16} /> Novo Evento</Button>
+              </Link>
+            </>
+          )}
         </div>
       </div>
 
