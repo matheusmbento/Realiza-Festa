@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { ArrowLeft, Phone, Plus } from 'lucide-react'
+import { ArrowLeft, Phone, Plus, Trash } from 'lucide-react'
 import { Card, Badge, Loading, SectionHeader, StatCard, Textarea, Button } from '@/components/ui'
 import { formatarMoeda, formatarData, telWhatsapp } from '@/lib/utils'
 import { STATUS_CORES, STATUS_LABELS, TIPO_EVENTO_LABELS, type Evento, type Cliente } from '@/types'
@@ -46,6 +46,21 @@ export default function ClienteDetalhes() {
     }
   }
 
+  async function excluirCliente() {
+    if (!confirm('Deseja realmente excluir este cliente? Esta ação não pode ser desfeita.')) return
+    try {
+      const res = await fetch(`/api/clientes/${params.id}`, { method: 'DELETE' })
+      if (!res.ok) {
+        const errorData = await res.json()
+        throw new Error(errorData.error || 'Erro ao excluir')
+      }
+      toast.success('Cliente excluído com sucesso!')
+      router.push('/clientes')
+    } catch (err: any) {
+      toast.error(err.message || 'Erro ao excluir cliente')
+    }
+  }
+
   if (loading) return <div className="mt-10"><Loading /></div>
   if (!cliente) return <div className="mt-10 text-center text-[#8888AA]">Cliente não encontrado</div>
 
@@ -61,9 +76,14 @@ export default function ClienteDetalhes() {
           <SectionHeader titulo={cliente.nome} />
           {isVip && <Badge color="#FFB400">🌟 VIP</Badge>}
         </div>
-        <Link href={`/eventos/novo?cliente_id=${cliente.id}`}>
-          <Button><Plus size={16} /> Novo Evento</Button>
-        </Link>
+        <div className="flex items-center gap-2">
+          <Button onClick={excluirCliente} variante="ghost" className="p-2.5 rounded-xl hover:bg-red-500/20" style={{ color: '#F87171' }} title="Excluir cliente">
+            <Trash size={16} />
+          </Button>
+          <Link href={`/eventos/novo?cliente_id=${cliente.id}`}>
+            <Button><Plus size={16} /> Novo Evento</Button>
+          </Link>
+        </div>
       </div>
 
       <div className="flex flex-wrap items-center gap-4 text-sm" style={{ color: '#8888AA' }}>
