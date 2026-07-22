@@ -11,15 +11,29 @@ export const dynamic = 'force-dynamic'
 
 export default async function Dashboard() {
   const supabase = createServerSupabase()
-  const dataHoje = new Date()
-  const hoje = dataHoje.toISOString().split('T')[0]
-  const amanha = new Date(Date.now() + 86400000).toISOString().split('T')[0]
-  const inicioMes = new Date(dataHoje.getFullYear(), dataHoje.getMonth(), 1).toISOString().split('T')[0]
-  const fimMes = new Date(dataHoje.getFullYear(), dataHoje.getMonth() + 1, 0).toISOString().split('T')[0]
-  const em30dias = new Date(Date.now() + 30 * 86400000).toISOString().split('T')[0]
+  
+  // Força o fuso horário de Brasília para a data de "hoje" no servidor da Vercel
+  const tzOptions = { timeZone: 'America/Sao_Paulo' }
+  const ptBRFormatter = new Intl.DateTimeFormat('pt-BR', { ...tzOptions, year: 'numeric', month: '2-digit', day: '2-digit' })
+  const agoraSP = new Date()
+  
+  const [dia, mes, ano] = ptBRFormatter.format(agoraSP).split('/')
+  const hoje = `${ano}-${mes}-${dia}`
+  
+  // Datas relativas usando parse do hoje para não perder a referência do fuso
+  const dataHojeBase = new Date(`${hoje}T12:00:00Z`)
+  
+  const dataAmanha = new Date(dataHojeBase.getTime() + 86400000)
+  const amanha = dataAmanha.toISOString().split('T')[0]
+  
+  const inicioMes = new Date(dataHojeBase.getFullYear(), dataHojeBase.getMonth(), 1).toISOString().split('T')[0]
+  const fimMes = new Date(dataHojeBase.getFullYear(), dataHojeBase.getMonth() + 1, 0).toISOString().split('T')[0]
+  
+  const data30 = new Date(dataHojeBase.getTime() + 30 * 86400000)
+  const em30dias = data30.toISOString().split('T')[0]
 
-  const inicioMesPassado = new Date(dataHoje.getFullYear(), dataHoje.getMonth() - 1, 1).toISOString().split('T')[0]
-  const fimMesPassado = new Date(dataHoje.getFullYear(), dataHoje.getMonth(), 0).toISOString().split('T')[0]
+  const inicioMesPassado = new Date(dataHojeBase.getFullYear(), dataHojeBase.getMonth() - 1, 1).toISOString().split('T')[0]
+  const fimMesPassado = new Date(dataHojeBase.getFullYear(), dataHojeBase.getMonth(), 0).toISOString().split('T')[0]
 
   // Eventos próximos (30 dias)
   const { data: eventosProximos } = await supabase
@@ -91,7 +105,7 @@ export default async function Dashboard() {
   const dadosGrafico: { label: string; receita: number; custos: number; lucro: number }[] = []
 
   // Buscar últimos 6 meses de lançamentos de uma vez
-  const inicio6m = new Date(dataHoje.getFullYear(), dataHoje.getMonth() - 5, 1).toISOString().split('T')[0]
+  const inicio6m = new Date(dataHojeBase.getFullYear(), dataHojeBase.getMonth() - 5, 1).toISOString().split('T')[0]
   const { data: lancamentos6m } = await supabase
     .from('lancamentos')
     .select('tipo, valor, data')
@@ -99,7 +113,7 @@ export default async function Dashboard() {
     .lte('data', fimMes)
 
   for (let i = 5; i >= 0; i--) {
-    const d = new Date(dataHoje.getFullYear(), dataHoje.getMonth() - i, 1)
+    const d = new Date(dataHojeBase.getFullYear(), dataHojeBase.getMonth() - i, 1)
     const mIni = d.toISOString().split('T')[0]
     const mFim = new Date(d.getFullYear(), d.getMonth() + 1, 0).toISOString().split('T')[0]
     const doMes = lancamentos6m?.filter(l => l.data >= mIni && l.data <= mFim) ?? []
@@ -131,7 +145,7 @@ export default async function Dashboard() {
   const eventosAmanha = eventosProximos?.filter(e => e.data_evento === amanha) ?? []
 
   // Avisos pendentes (Checklist com prazos próximos, até 7 dias)
-  const seteDiasFrente = new Date(Date.now() + 7 * 86400000).toISOString().split('T')[0]
+  const seteDiasFrente = new Date(dataHojeBase.getTime() + 7 * 86400000).toISOString().split('T')[0]
   const { data: avisos } = await supabase
     .from('checklist_evento')
     .select('*, evento:eventos(id, nome)')
@@ -156,20 +170,20 @@ export default async function Dashboard() {
     }
     if (eventosAmanha.length === 1) {
       return {
-        titulo: `Bom dia! 👋`,
+        titulo: `Atenção! 👋`,
         subtitulo: `Amanhã tem ${eventosAmanha[0].nome} — prepare a carga`,
       }
     }
     if (eventosAmanha.length > 1) {
       return {
-        titulo: `Bom dia! 👋`,
+        titulo: `Atenção! 👋`,
         subtitulo: `${eventosAmanha.length} eventos amanhã — hora de preparar`,
       }
     }
     return {
-      titulo: `Bom dia! ✨`,
-      subtitulo: new Date().toLocaleDateString('pt-BR', {
-        weekday: 'long', day: 'numeric', month: 'long',
+      titulo: `Eaí Clara! ✨`,
+      subtitulo: dataHojeBase.toLocaleDateString('pt-BR', {
+        weekday: 'long', day: 'numeric', month: 'long', timeZone: 'America/Sao_Paulo'
       }),
     }
   }
