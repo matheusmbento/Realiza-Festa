@@ -75,6 +75,16 @@ export default function DetalheEvento() {
     carregar()
   }
 
+  async function removerAlocacao(idAlocacao: string) {
+    if (!confirm('Remover este item do evento?')) return
+    await fetch('/api/alocacoes', {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id: idAlocacao }),
+    })
+    carregar()
+  }
+
   async function toggleChecklist(item: ChecklistItem) {
     await fetch('/api/checklist', {
       method: 'PATCH',
@@ -549,11 +559,16 @@ export default function DetalheEvento() {
                             <span className="text-xs font-medium" style={{ color: '#8888AA' }}>
                               × {aloc.quantidade}
                             </span>
-                            <button onClick={() => toggleAlocacao(aloc)} className="flex-shrink-0 transition-transform active:scale-95 p-2 -mr-2">
-                              {aloc.confirmado
-                                ? <CheckCircle2 size={24} style={{ color: '#4ADE80' }} />
-                                : <Circle size={24} style={{ color: '#3A3A50' }} />}
-                            </button>
+                            <div className="flex items-center gap-1">
+                              <button onClick={() => removerAlocacao(aloc.id)} className="p-2 text-[#8888AA] hover:text-[#F87171] transition-colors" title="Remover item">
+                                <Trash2 size={16} />
+                              </button>
+                              <button onClick={() => toggleAlocacao(aloc)} className="flex-shrink-0 transition-transform active:scale-95 p-2 -mr-2">
+                                {aloc.confirmado
+                                  ? <CheckCircle2 size={24} style={{ color: '#4ADE80' }} />
+                                  : <Circle size={24} style={{ color: '#3A3A50' }} />}
+                              </button>
+                            </div>
                           </div>
                         </div>
                       )
